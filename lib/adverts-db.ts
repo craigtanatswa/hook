@@ -326,3 +326,40 @@ export async function deleteAdvert(id: string): Promise<{ ok: true } | { error: 
     return { error: e instanceof Error ? e.message : "Unknown error" };
   }
 }
+
+/** Set a listing to expired/inactive so it no longer shows on the public feed. */
+export async function deactivateAdvert(id: string): Promise<{ ok: true } | { error: string }> {
+  try {
+    const supabase = createServiceClient();
+    const { error } = await supabase
+      .from("adverts")
+      .update({ status: "expired", updated_at: new Date().toISOString() })
+      .eq("id", id);
+    if (error) return { error: error.message };
+    return { ok: true };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Unknown error" };
+  }
+}
+
+/** Make an expired listing live again with a fresh expiry window. */
+export async function repostAdvert(
+  id: string,
+  days: number
+): Promise<{ ok: true } | { error: string }> {
+  try {
+    const supabase = createServiceClient();
+    const { error } = await supabase
+      .from("adverts")
+      .update({
+        status: "active",
+        expiry_date: expiryDateFromDays(days),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id);
+    if (error) return { error: error.message };
+    return { ok: true };
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : "Unknown error" };
+  }
+}

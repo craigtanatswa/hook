@@ -35,7 +35,10 @@ export default function HomePage() {
   const [bodyType, setBodyType] = useState("All");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [mounted, setMounted] = useState(false);
   const { resolvedTheme, setTheme } = useTheme();
+
+  useEffect(() => setMounted(true), []);
 
   const filtered = allAdverts.filter((a) => {
     const matchSearch =
@@ -145,7 +148,7 @@ export default function HomePage() {
             aria-label="Toggle dark mode"
             className="shrink-0 p-2 rounded-xl border border-border text-foreground hover:bg-muted transition-colors"
           >
-            {resolvedTheme === "dark" ? (
+            {mounted && resolvedTheme === "dark" ? (
               <Sun className="h-4 w-4" />
             ) : (
               <Moon className="h-4 w-4" />

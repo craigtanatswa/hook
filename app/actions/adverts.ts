@@ -6,6 +6,8 @@ import {
   insertAdvertWithMedia,
   updateAdvertWithMedia,
   deleteAdvert,
+  deactivateAdvert,
+  repostAdvert,
   type AdvertInput,
 } from "@/lib/adverts-db";
 
@@ -60,7 +62,9 @@ function buildInput(formData: FormData): AdvertInput | { error: string } {
   };
 }
 
-export async function createAdvertAction(formData: FormData) {
+export async function createAdvertAction(
+  formData: FormData
+): Promise<{ ok: true; id: string } | { error: string }> {
   const input = buildInput(formData);
   if ("error" in input) return { error: input.error };
 
@@ -69,10 +73,13 @@ export async function createAdvertAction(formData: FormData) {
 
   revalidatePath("/");
   revalidatePath("/admin/active");
-  redirect(`/admin/active`);
+  return { ok: true, id: result.id };
 }
 
-export async function updateAdvertAction(advertId: string, formData: FormData) {
+export async function updateAdvertAction(
+  advertId: string,
+  formData: FormData
+): Promise<{ ok: true } | { error: string }> {
   const input = buildInput(formData);
   if ("error" in input) return { error: input.error };
 
@@ -82,7 +89,7 @@ export async function updateAdvertAction(advertId: string, formData: FormData) {
   revalidatePath("/");
   revalidatePath("/admin/active");
   revalidatePath(`/adverts/${advertId}`);
-  redirect(`/admin/active`);
+  return { ok: true };
 }
 
 export async function deleteAdvertAction(advertId: string) {
@@ -92,4 +99,23 @@ export async function deleteAdvertAction(advertId: string) {
   revalidatePath("/admin/active");
   revalidatePath("/admin/expired");
   return { ok: true };
+}
+
+export async function deactivateAdvertAction(advertId: string) {
+  const result = await deactivateAdvert(advertId);
+  if ("error" in result) return result;
+  revalidatePath("/");
+  revalidatePath("/admin/active");
+  revalidatePath("/admin/expired");
+  return { ok: true };
+}
+
+export async function repostAdvertAction(advertId: string, formData: FormData) {
+  const days = parseInt(String(formData.get("days") || "30"), 10) || 30;
+  const result = await repostAdvert(advertId, days);
+  if ("error" in result) return result;
+  revalidatePath("/");
+  revalidatePath("/admin/active");
+  revalidatePath("/admin/expired");
+  redirect("/admin/active");
 }
