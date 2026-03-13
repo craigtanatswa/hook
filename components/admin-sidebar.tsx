@@ -9,9 +9,9 @@ import { cn } from "@/lib/utils";
 
 const navItems = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/admin/create", label: "Create Advert", icon: PlusCircle },
-  { href: "/admin/active", label: "Active Adverts", icon: CheckCircle2 },
-  { href: "/admin/expired", label: "Expired Adverts", icon: Clock },
+  { href: "/admin/create", label: "New listing", icon: PlusCircle },
+  { href: "/admin/active", label: "Live profiles", icon: CheckCircle2 },
+  { href: "/admin/expired", label: "Expired listings", icon: Clock },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

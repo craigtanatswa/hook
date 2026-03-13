@@ -2,14 +2,16 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/components/theme-provider'
+import { AgeGate } from '@/components/age-gate'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Hook — Find Local Service Providers',
-  description: 'Browse trusted local service providers — cleaners, plumbers, electricians, tutors, and more. Contact them directly via WhatsApp, phone, or email.',
+  title: 'Hook — Cuddles at yours',
+  description:
+    'Gorgeous humans who travel to you for platonic, consent-first cuddle sessions. Browse, vibe-check the photos, then WhatsApp or call—your couch never had it this good.',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -39,6 +41,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="light">
+          <AgeGate />
           {children}
         </ThemeProvider>
         <Analytics />

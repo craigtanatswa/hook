@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Upload, X } from "lucide-react";
+import { genders, bodyTypes, categories } from "@/lib/data";
+import { MediaUploader } from "@/components/media-uploader";
 
 type AdvertFormProps = {
+  advertId?: string;
   defaultValues?: {
     name?: string;
     age?: string;
@@ -12,92 +14,64 @@ type AdvertFormProps = {
     whatsapp?: string;
     email?: string;
     description?: string;
+    gender?: string;
+    bodyType?: string;
+    category?: string;
     expiry?: string;
     featured?: string;
+    mediaUrls?: string;
   };
-  onSubmit?: (data: Record<string, string>) => void;
+  /** Server Action for create or update */
+  action?: (formData: FormData) => void | Promise<void>;
   submitLabel?: string;
 };
 
-export function AdvertForm({ defaultValues = {}, onSubmit, submitLabel = "Post Advert" }: AdvertFormProps) {
-  const [previews, setPreviews] = useState<string[]>([]);
+export function AdvertForm({
+  advertId,
+  defaultValues = {},
+  action,
+  submitLabel = "Publish listing",
+}: AdvertFormProps) {
   const [submitted, setSubmitted] = useState(false);
-
-  const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    const urls = files.map((f) => URL.createObjectURL(f));
-    setPreviews((prev) => [...prev, ...urls]);
-  };
-
-  const removePreview = (i: number) => {
-    setPreviews((prev) => prev.filter((_, idx) => idx !== i));
-  };
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const form = e.currentTarget;
-    const data: Record<string, string> = {};
-    new FormData(form).forEach((value, key) => {
-      data[key] = value as string;
-    });
-    if (onSubmit) {
-      onSubmit(data);
-    }
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 3000);
-  };
-
-  const labelClass = "block text-sm font-semibold text-foreground mb-1.5";
-  const inputClass =
-    "w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-shadow";
+  const [mediaError, setMediaError] = useState<string | null>(null);
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Photo upload */}
-      <div>
-        <label className={labelClass}>Photos</label>
-        <label
-          htmlFor="photo-upload"
-          className="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-border rounded-2xl py-8 px-4 cursor-pointer hover:border-primary hover:bg-accent/30 transition-colors"
-        >
-          <Upload className="h-7 w-7 text-muted-foreground" />
-          <span className="text-sm font-medium text-muted-foreground">Click to upload photos</span>
-          <span className="text-xs text-muted-foreground/70">JPG, PNG, WEBP — max 5 photos</span>
-          <input
-            id="photo-upload"
-            name="photos"
-            type="file"
-            accept="image/*"
-            multiple
-            className="sr-only"
-            onChange={handleFiles}
-          />
-        </label>
+    <form
+      action={
+        action
+          ? async (formData) => {
+              await action(formData);
+              setSubmitted(true);
+              setTimeout(() => setSubmitted(false), 3000);
+            }
+          : undefined
+      }
+      onSubmit={(e) => {
+        if (!action) {
+          e.preventDefault();
+          return;
+        }
+        const fd = new FormData(e.currentTarget);
+        const urls = String(fd.get("media_urls") ?? "").trim();
+        if (!urls) {
+          e.preventDefault();
+          setMediaError("Please add at least one photo before publishing.");
+          return;
+        }
+        setMediaError(null);
+      }}
+      className="space-y-6"
+    >
+      {advertId && <input type="hidden" name="advert_id" value={advertId} />}
 
-        {previews.length > 0 && (
-          <div className="flex gap-2 mt-3 flex-wrap">
-            {previews.map((src, i) => (
-              <div key={i} className="relative h-20 w-20 rounded-xl overflow-hidden border border-border">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={src} alt={`Preview ${i + 1}`} className="h-full w-full object-cover" />
-                <button
-                  type="button"
-                  onClick={() => removePreview(i)}
-                  aria-label={`Remove photo ${i + 1}`}
-                  className="absolute top-1 right-1 h-5 w-5 rounded-full bg-foreground/80 text-background flex items-center justify-center hover:bg-foreground"
-                >
-                  <X className="h-3 w-3" />
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      <MediaUploader defaultUrls={defaultValues.mediaUrls} error={mediaError} />
 
       {/* Name & Age */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="name" className={labelClass}>Full Name *</label>
+          <label htmlFor="name" className="block text-sm font-semibold text-foreground mb-1.5">
+            Full Name *
+          </label>
           <input
             id="name"
             name="name"
@@ -105,11 +79,13 @@ export function AdvertForm({ defaultValues = {}, onSubmit, submitLabel = "Post A
             required
             placeholder="e.g. Sarah Dlamini"
             defaultValue={defaultValues.name}
-            className={inputClass}
+            className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
         <div>
-          <label htmlFor="age" className={labelClass}>Age *</label>
+          <label htmlFor="age" className="block text-sm font-semibold text-foreground mb-1.5">
+            Age *
+          </label>
           <input
             id="age"
             name="age"
@@ -119,14 +95,16 @@ export function AdvertForm({ defaultValues = {}, onSubmit, submitLabel = "Post A
             max={99}
             placeholder="e.g. 32"
             defaultValue={defaultValues.age}
-            className={inputClass}
+            className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
       </div>
 
       {/* Location */}
       <div>
-        <label htmlFor="location" className={labelClass}>Location *</label>
+        <label htmlFor="location" className="block text-sm font-semibold text-foreground mb-1.5">
+          Location *
+        </label>
         <input
           id="location"
           name="location"
@@ -134,14 +112,76 @@ export function AdvertForm({ defaultValues = {}, onSubmit, submitLabel = "Post A
           required
           placeholder="e.g. Sandton, Johannesburg"
           defaultValue={defaultValues.location}
-          className={inputClass}
+          className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         />
+      </div>
+
+      {/* Category */}
+      <div>
+        <label htmlFor="category" className="block text-sm font-semibold text-foreground mb-1.5">
+          Vibe / category *
+        </label>
+        <select
+          id="category"
+          name="category"
+          required
+          defaultValue={defaultValues.category || "Soft & slow"}
+          className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        >
+          {categories.filter((c) => c !== "All").map((c) => (
+            <option key={c} value={c}>
+              {c}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Gender & body type */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="gender" className="block text-sm font-semibold text-foreground mb-1.5">
+            Gender *
+          </label>
+          <select
+            id="gender"
+            name="gender"
+            required
+            defaultValue={defaultValues.gender || "Female"}
+            className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            {genders.filter((g) => g !== "All").map((g) => (
+              <option key={g} value={g}>
+                {g}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label htmlFor="bodyType" className="block text-sm font-semibold text-foreground mb-1.5">
+            Body type *
+          </label>
+          <select
+            id="bodyType"
+            name="bodyType"
+            required
+            defaultValue={defaultValues.bodyType || "Average"}
+            className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            {bodyTypes.filter((b) => b !== "All").map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Phone & WhatsApp */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
-          <label htmlFor="phone" className={labelClass}>Phone Number *</label>
+          <label htmlFor="phone" className="block text-sm font-semibold text-foreground mb-1.5">
+            Phone *
+          </label>
           <input
             id="phone"
             name="phone"
@@ -149,11 +189,13 @@ export function AdvertForm({ defaultValues = {}, onSubmit, submitLabel = "Post A
             required
             placeholder="+27 82 123 4567"
             defaultValue={defaultValues.phone}
-            className={inputClass}
+            className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
         <div>
-          <label htmlFor="whatsapp" className={labelClass}>WhatsApp Number *</label>
+          <label htmlFor="whatsapp" className="block text-sm font-semibold text-foreground mb-1.5">
+            WhatsApp *
+          </label>
           <input
             id="whatsapp"
             name="whatsapp"
@@ -161,14 +203,13 @@ export function AdvertForm({ defaultValues = {}, onSubmit, submitLabel = "Post A
             required
             placeholder="27821234567"
             defaultValue={defaultValues.whatsapp}
-            className={inputClass}
+            className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           />
         </div>
       </div>
 
-      {/* Email (optional) */}
       <div>
-        <label htmlFor="email" className={labelClass}>
+        <label htmlFor="email" className="block text-sm font-semibold text-foreground mb-1.5">
           Email <span className="text-muted-foreground font-normal">(optional)</span>
         </label>
         <input
@@ -177,33 +218,35 @@ export function AdvertForm({ defaultValues = {}, onSubmit, submitLabel = "Post A
           type="email"
           placeholder="name@example.com"
           defaultValue={defaultValues.email}
-          className={inputClass}
+          className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         />
       </div>
 
-      {/* Description */}
       <div>
-        <label htmlFor="description" className={labelClass}>Description *</label>
+        <label htmlFor="description" className="block text-sm font-semibold text-foreground mb-1.5">
+          Description *
+        </label>
         <textarea
           id="description"
           name="description"
           required
           rows={5}
-          placeholder="Describe the service you offer, your experience, availability, and area covered..."
+          placeholder="Sell the vibe—boundaries, areas, availability..."
           defaultValue={defaultValues.description}
-          className={`${inputClass} resize-none`}
+          className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
         />
       </div>
 
-      {/* Expiry */}
       <div>
-        <label htmlFor="expiry" className={labelClass}>Advert Duration *</label>
+        <label htmlFor="expiry" className="block text-sm font-semibold text-foreground mb-1.5">
+          Listing duration *
+        </label>
         <select
           id="expiry"
           name="expiry"
           required
           defaultValue={defaultValues.expiry || "30"}
-          className={inputClass}
+          className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
         >
           <option value="1">1 day</option>
           <option value="7">7 days</option>
@@ -211,7 +254,6 @@ export function AdvertForm({ defaultValues = {}, onSubmit, submitLabel = "Post A
         </select>
       </div>
 
-      {/* Featured toggle */}
       <div className="flex items-start gap-3 rounded-xl border border-border bg-accent/30 p-4">
         <input
           id="featured"
@@ -222,20 +264,20 @@ export function AdvertForm({ defaultValues = {}, onSubmit, submitLabel = "Post A
         />
         <div>
           <label htmlFor="featured" className="text-sm font-semibold text-foreground cursor-pointer">
-            Feature this advert
+            Feature this listing
           </label>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Featured adverts are pinned to the top of the listing and marked with a badge.
+            Featured profiles hit the hero strip first.
           </p>
         </div>
       </div>
 
-      {/* Submit */}
       <button
-        type="submit"
-        className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold text-base hover:opacity-90 active:scale-95 transition-all"
+        type={action ? "submit" : "button"}
+        disabled={!action}
+        className="w-full py-4 rounded-xl bg-primary text-primary-foreground font-bold text-base hover:opacity-90 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {submitted ? "Advert Posted!" : submitLabel}
+        {submitted ? "Saved." : submitLabel}
       </button>
     </form>
   );

@@ -27,7 +27,7 @@ export function ContactButtons({ phone, whatsapp, email, size = "default" }: Con
         }`}
       >
         <WhatsAppIcon className={isLarge ? "h-5 w-5" : "h-4 w-4"} />
-        WhatsApp
+        WhatsApp them
       </a>
 
       <a

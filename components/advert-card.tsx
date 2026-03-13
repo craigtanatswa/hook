@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, ChevronLeft, ChevronRight, Star } from "lucide-react";
+import { MapPin, ChevronLeft, ChevronRight, Star, BadgeCheck } from "lucide-react";
 import type { Advert } from "@/lib/data";
 import { ContactButtons } from "@/components/contact-buttons";
 
@@ -38,7 +38,7 @@ export function AdvertCard({ advert }: AdvertCardProps) {
         <Link href={`/adverts/${advert.id}`} className="block absolute inset-0">
           <Image
             src={mainImage}
-            alt={`${advert.name} — service photo ${currentImageIndex + 1}`}
+            alt={`${advert.name} — photo ${currentImageIndex + 1}`}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
             priority={currentImageIndex === 0}
@@ -102,13 +102,30 @@ export function AdvertCard({ advert }: AdvertCardProps) {
           </span>
         </div>
 
-        {/* Meta: age + location */}
-        <div className="flex items-center gap-3 mb-3 text-sm text-muted-foreground">
+        {/* Meta: age, gender, body type + location */}
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-3 text-sm text-muted-foreground">
           <span>Age {advert.age}</span>
           <span aria-hidden>·</span>
-          <span className="flex items-center gap-1 min-w-0">
+          <span>{advert.gender}</span>
+          <span aria-hidden>·</span>
+          <span className="text-foreground/90 font-medium">{advert.bodyType}</span>
+          <span aria-hidden>·</span>
+          <span className="flex items-center gap-1 min-w-0 basis-full sm:basis-auto">
             <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
             <span className="truncate">{advert.location}</span>
+          </span>
+        </div>
+
+        {/* Trust indicators — context: verified, rating placeholder, recently active */}
+        <div className="flex flex-wrap items-center gap-2 mb-3">
+          <span className="inline-flex items-center gap-1 text-xs font-semibold text-primary">
+            <BadgeCheck className="h-3.5 w-3.5" />
+            Verified
+          </span>
+          <span className="text-xs text-muted-foreground">·</span>
+          <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+            <Star className="h-3 w-3" />
+            Fresh on Hook
           </span>
         </div>
 

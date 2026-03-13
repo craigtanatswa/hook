@@ -9,21 +9,21 @@ export default function AdminDashboard() {
 
   const stats = [
     {
-      label: "Total Adverts",
+      label: "Total listings",
       value: total,
       icon: LayoutGrid,
       color: "text-foreground",
       bg: "bg-card",
     },
     {
-      label: "Active Adverts",
+      label: "Live on Hook",
       value: active.length,
       icon: CheckCircle2,
       color: "text-primary",
       bg: "bg-primary/5",
     },
     {
-      label: "Expired Adverts",
+      label: "Expired / paused",
       value: expired.length,
       icon: Clock,
       color: "text-muted-foreground",
@@ -35,7 +35,7 @@ export default function AdminDashboard() {
     <div className="p-6 max-w-3xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-black text-foreground">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">Overview of all adverts on Hook</p>
+        <p className="text-sm text-muted-foreground mt-1">Who’s live, who’s expired, who’s about to get booked</p>
       </div>
 
       {/* Stats cards */}
@@ -61,7 +61,7 @@ export default function AdminDashboard() {
           >
             <span className="flex items-center gap-2.5">
               <PlusCircle className="h-5 w-5" />
-              Create New Advert
+              New cuddler listing
             </span>
             <ArrowRight className="h-4 w-4" />
           </Link>
@@ -71,7 +71,7 @@ export default function AdminDashboard() {
           >
             <span className="flex items-center gap-2.5">
               <Clock className="h-5 w-5 text-muted-foreground" />
-              Manage Expired
+              Revive expired listings
             </span>
             <ArrowRight className="h-4 w-4 text-muted-foreground" />
           </Link>
@@ -81,7 +81,7 @@ export default function AdminDashboard() {
       {/* Recent active adverts */}
       <div>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-base font-bold text-foreground">Recent Active Adverts</h2>
+          <h2 className="text-base font-bold text-foreground">Recently live</h2>
           <Link href="/admin/active" className="text-xs font-semibold text-primary hover:underline">
             View all
           </Link>
@@ -100,7 +100,7 @@ export default function AdminDashboard() {
           ))}
           {active.length === 0 && (
             <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-              No active adverts yet.
+              No live listings yet—go publish someone irresistible.
             </div>
           )}
         </div>

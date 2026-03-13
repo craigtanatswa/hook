@@ -19,7 +19,7 @@ export default function SettingsPage() {
     <div className="p-6 max-w-2xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-black text-foreground">Settings</h1>
-        <p className="text-sm text-muted-foreground mt-1">Manage your Hook platform settings</p>
+        <p className="text-sm text-muted-foreground mt-1">Tune Hook before the cuddlers break the internet</p>
       </div>
 
       <form onSubmit={handleSave} className="space-y-6">
@@ -34,7 +34,7 @@ export default function SettingsPage() {
             <input id="contact-email" type="email" defaultValue="admin@hook.co.za" className={inputClass} />
           </div>
           <div>
-            <label htmlFor="default-expiry" className={labelClass}>Default Advert Expiry</label>
+            <label htmlFor="default-expiry" className={labelClass}>Default listing expiry</label>
             <select id="default-expiry" defaultValue="30" className={inputClass}>
               <option value="1">1 day</option>
               <option value="7">7 days</option>
@@ -48,7 +48,7 @@ export default function SettingsPage() {
           <div className="flex items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-foreground">Require approval before publishing</p>
-              <p className="text-xs text-muted-foreground mt-0.5">New adverts go into a review queue before going live</p>
+              <p className="text-xs text-muted-foreground mt-0.5">New listings hit review first—keep the feed safe and thirsty in the right way</p>
             </div>
             <label className="relative inline-flex items-center cursor-pointer">
               <input type="checkbox" defaultChecked className="sr-only peer" />

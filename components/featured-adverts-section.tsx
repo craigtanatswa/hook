@@ -27,7 +27,7 @@ export function FeaturedAdvertsSection({ adverts }: FeaturedAdvertsSectionProps)
           {/* Main featured image */}
           <Image
             src={current.images[0] || current.profileImage}
-            alt={`${current.name} — featured`}
+            alt={`${current.name} — tonight’s pick`}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
             priority
@@ -38,18 +38,18 @@ export function FeaturedAdvertsSection({ adverts }: FeaturedAdvertsSectionProps)
             Featured
           </div>
 
-          {/* Info overlay at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-foreground/90 via-foreground/70 to-transparent p-4 sm:p-6">
-            <h3 className="text-white text-lg sm:text-2xl font-bold text-balance mb-2">
+          {/* Info overlay at bottom — darker gradient so white text stays readable on bright photos */}
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/80 to-transparent pt-16 sm:pt-20 p-4 sm:p-6">
+            <h3 className="text-white text-lg sm:text-2xl font-bold text-balance mb-2 drop-shadow-sm">
               {current.name}
             </h3>
-            <div className="flex items-center gap-2 text-white/90 text-sm mb-3">
+            <div className="flex items-center gap-2 text-white text-sm mb-3 drop-shadow-sm">
               <MapPin className="h-4 w-4" />
               <span>{current.location}</span>
-              <span className="text-white/60">•</span>
+              <span className="text-white/70">•</span>
               <span>{current.category}</span>
             </div>
-            <p className="text-white/80 text-xs sm:text-sm line-clamp-2 mb-3">
+            <p className="text-white/95 text-xs sm:text-sm line-clamp-2 mb-3 drop-shadow-sm">
               {current.shortDescription}
             </p>
           </div>

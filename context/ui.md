@@ -1,39 +1,10 @@
-# Hook UI Design Rules
+# Hook UI — Cuddle listings
 
-Theme colors:
+- **Primary**: Orange `#FF6B00` — use for CTAs and featured badge (heat without sleaze).
+- **Background**: White (light) — keep cards clean so photos pop.
+- **Media-first**: carousel/slideshow on cards and detail; swipe on mobile.
+- **Cards**: ~70% media, then name, age, location, **short tease** (line-clamp).
+- **Trust row**: verified + “reviews soon” / fresh on Hook — keeps it aspirational.
+- **Buttons**: WhatsApp primary, Call dark — “WhatsApp them” etc. in copy.
 
-Primary: Orange (#FF6B00)
-Background: White
-Text: Black
-
-Design style:
-
-- modern
-- minimal
-- mobile first
-- rounded corners
-- soft shadows
-- large touch friendly buttons
-
-The UI must be MEDIA FIRST.
-
-Each advert card should prioritize images or videos.
-
-Layout:
-
-Top:
-Media slideshow (70% of card height)
-
-Bottom:
-Text information:
-- name
-- age
-- location
-- short description
-
-Contact buttons:
-- WhatsApp
-- Call
-- Email
-
-If multiple media items exist they must display in a carousel with swipe support on mobile.
+Tone in UI strings: **sexy-in-the-sense-of-desirable**, warm, direct — **never** implying paid sexual services; **always** consent-first platonic cuddling.

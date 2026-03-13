@@ -1,0 +1,23 @@
+-- Storage bucket for advert media (images, gifs, videos).
+--
+-- The bucket is created automatically the first time a file is uploaded via
+-- the /api/upload route (using the service role key), so no manual step is
+-- required. The SQL below is provided for reference only — you can also run
+-- it in the Supabase Dashboard > Storage if you prefer to pre-create it.
+--
+-- Supabase Storage buckets cannot be created through normal SQL; use the
+-- Storage API or the Dashboard. The equivalent settings are:
+--
+--   Bucket name : advert-media
+--   Public      : true   (files are served without authentication)
+--   Allowed MIME types:
+--       image/jpeg, image/png, image/gif, image/webp
+--       video/mp4, video/quicktime, video/webm
+--   Max file size: 50 MB
+--
+-- Uploaded files land at:
+--   https://<project>.supabase.co/storage/v1/object/public/advert-media/uploads/<filename>
+--
+-- No RLS policies are needed on the bucket itself because:
+--   - Reads  : public bucket — no policy required
+--   - Writes : only the service role key (server-side only) can upload

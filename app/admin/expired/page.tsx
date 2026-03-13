@@ -20,14 +20,14 @@ export default function ExpiredAdvertsPage() {
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-black text-foreground">Expired Adverts</h1>
-        <p className="text-sm text-muted-foreground mt-1">{adverts.length} expired</p>
+        <h1 className="text-2xl font-black text-foreground">Expired listings</h1>
+        <p className="text-sm text-muted-foreground mt-1">{adverts.length} off the feed (for now)</p>
       </div>
 
       {adverts.length === 0 ? (
         <div className="bg-card rounded-2xl border border-border px-4 py-16 text-center">
-          <p className="font-semibold text-foreground">No expired adverts</p>
-          <p className="text-sm text-muted-foreground mt-1">All adverts are currently active.</p>
+          <p className="font-semibold text-foreground">Nothing in the graveyard</p>
+          <p className="text-sm text-muted-foreground mt-1">Every profile is still live—nice problem to have.</p>
         </div>
       ) : (
         <div className="space-y-3">
