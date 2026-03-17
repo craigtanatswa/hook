@@ -31,7 +31,40 @@ type MediaRow = {
 
 type MediaBundle = { urls: string[]; focalPoints: string[] };
 
-function rowToAdvert(row: AdvertRow, mediaUrls: string[], focalPoints?: string[]): Advert {
+type RatingSummary = { avg: number; count: number };
+
+async function fetchRatingsByAdvertIds(ids: string[]): Promise<Map<string, RatingSummary>> {
+  const map = new Map<string, RatingSummary>();
+  if (!ids.length) return map;
+  try {
+    const supabase = createServiceClient();
+    const { data, error } = await supabase
+      .from("advert_ratings")
+      .select("advert_id,rating")
+      .in("advert_id", ids);
+
+    if (error || !data) return map;
+    const rows = data as { advert_id: string; rating: number }[];
+    const sums = new Map<string, { sum: number; count: number }>();
+    for (const r of rows) {
+      const prev = sums.get(r.advert_id) ?? { sum: 0, count: 0 };
+      sums.set(r.advert_id, { sum: prev.sum + (Number(r.rating) || 0), count: prev.count + 1 });
+    }
+    for (const [advertId, v] of sums.entries()) {
+      map.set(advertId, { avg: v.count ? v.sum / v.count : 0, count: v.count });
+    }
+    return map;
+  } catch {
+    return map;
+  }
+}
+
+function rowToAdvert(
+  row: AdvertRow,
+  mediaUrls: string[],
+  focalPoints?: string[],
+  rating?: RatingSummary
+): Advert {
   const images = mediaUrls.length > 0 ? mediaUrls : ["/placeholder.svg"];
   const now = new Date();
   const expires = new Date(row.expiry_date);
@@ -62,6 +95,8 @@ function rowToAdvert(row: AdvertRow, mediaUrls: string[], focalPoints?: string[]
     status,
     featured: isFeatured,
     featuredUntil: featuredUntilIso,
+    ratingAvg: rating?.count ? rating.avg : undefined,
+    ratingCount: rating?.count ? rating.count : undefined,
   };
 }
 
@@ -98,6 +133,7 @@ export async function fetchActiveAdvertsWithMedia(): Promise<Advert[]> {
     if (!advertRows?.length) return [];
 
     const ids = advertRows.map((r: AdvertRow) => r.id);
+    const ratingById = await fetchRatingsByAdvertIds(ids);
     const { data: mediaRows, error: mErr } = await supabase
       .from("advert_media")
       .select("*")
@@ -113,7 +149,7 @@ export async function fetchActiveAdvertsWithMedia(): Promise<Advert[]> {
 
     return (advertRows as AdvertRow[]).map((row) => {
       const bundle = byAdvert.get(row.id) ?? { urls: [], focalPoints: [] };
-      return rowToAdvert(row, bundle.urls, bundle.focalPoints);
+      return rowToAdvert(row, bundle.urls, bundle.focalPoints, ratingById.get(row.id));
     });
   } catch (e) {
     console.error("[fetchActiveAdvertsWithMedia] unexpected error:", e);
@@ -142,7 +178,8 @@ export async function fetchAdvertByIdWithMedia(id: string): Promise<Advert | nul
     const rows = (mediaRows || []) as MediaRow[];
     const urls = rows.map((m) => m.media_url);
     const focalPoints = rows.map((m) => m.focal_point ?? "50% 50%");
-    return rowToAdvert(row as AdvertRow, urls, focalPoints);
+    const ratingById = await fetchRatingsByAdvertIds([id]);
+    return rowToAdvert(row as AdvertRow, urls, focalPoints, ratingById.get(id));
   } catch {
     return null;
   }
@@ -163,6 +200,7 @@ export async function fetchExpiredAdvertsWithMedia(): Promise<Advert[]> {
     if (!advertRows?.length) return [];
 
     const ids = advertRows.map((r: AdvertRow) => r.id);
+    const ratingById = await fetchRatingsByAdvertIds(ids);
     const { data: mediaRows } = await supabase
       .from("advert_media")
       .select("*")
@@ -173,7 +211,12 @@ export async function fetchExpiredAdvertsWithMedia(): Promise<Advert[]> {
 
     return (advertRows as AdvertRow[]).map((row) => {
       const bundle = byAdvert.get(row.id) ?? { urls: [], focalPoints: [] };
-      return rowToAdvert({ ...row, status: "expired" }, bundle.urls, bundle.focalPoints);
+      return rowToAdvert(
+        { ...row, status: "expired" },
+        bundle.urls,
+        bundle.focalPoints,
+        ratingById.get(row.id)
+      );
     });
   } catch {
     return [];
@@ -332,6 +375,7 @@ export async function fetchAllAdvertsWithMediaForAdmin(): Promise<Advert[]> {
     if (!advertRows?.length) return [];
 
     const ids = advertRows.map((r: AdvertRow) => r.id);
+    const ratingById = await fetchRatingsByAdvertIds(ids);
     const { data: mediaRows } = await supabase
       .from("advert_media")
       .select("*")
@@ -342,7 +386,7 @@ export async function fetchAllAdvertsWithMediaForAdmin(): Promise<Advert[]> {
 
     return (advertRows as AdvertRow[]).map((row) => {
       const bundle = byAdvert.get(row.id) ?? { urls: [], focalPoints: [] };
-      return rowToAdvert(row, bundle.urls, bundle.focalPoints);
+      return rowToAdvert(row, bundle.urls, bundle.focalPoints, ratingById.get(row.id));
     });
   } catch {
     return [];

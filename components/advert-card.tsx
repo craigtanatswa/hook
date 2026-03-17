@@ -6,6 +6,7 @@ import Link from "next/link";
 import { MapPin, ChevronLeft, ChevronRight, Star, BadgeCheck, Film } from "lucide-react";
 import type { Advert } from "@/lib/data";
 import { ContactButtons } from "@/components/contact-buttons";
+import { RatingStars } from "@/components/rating-stars";
 
 type AdvertCardProps = {
   advert: Advert;
@@ -183,10 +184,22 @@ export function AdvertCard({ advert }: AdvertCardProps) {
             Verified
           </span>
           <span className="text-xs text-muted-foreground">·</span>
-          <span className="text-xs text-muted-foreground flex items-center gap-0.5">
-            <Star className="h-3 w-3" />
-            Fresh on Hook
-          </span>
+          <RatingStars
+            value={advert.ratingAvg ?? 0}
+            count={advert.ratingCount}
+            showText={Boolean(advert.ratingCount && advert.ratingCount > 0)}
+            className="text-xs"
+            starClassName="h-3 w-3"
+          />
+          {(!advert.ratingCount || advert.ratingCount === 0) && (
+            <>
+              <span className="text-xs text-muted-foreground">·</span>
+              <span className="text-xs text-muted-foreground flex items-center gap-0.5">
+                <Star className="h-3 w-3" />
+                New
+              </span>
+            </>
+          )}
         </div>
 
         {/* Description */}

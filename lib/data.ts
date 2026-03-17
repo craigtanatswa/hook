@@ -23,6 +23,8 @@ export type Advert = {
   status: "active" | "expired";
   featured?: boolean;
   featuredUntil?: string;
+  ratingAvg?: number;
+  ratingCount?: number;
 };
 
 export const adverts: Advert[] = [

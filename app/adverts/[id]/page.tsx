@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, MapPin, Calendar, BadgeCheck, Star } from "lucide-react";
+import { ArrowLeft, MapPin, Calendar, BadgeCheck } from "lucide-react";
 import { fetchAdvertByIdWithMedia, fetchActiveAdvertsWithMedia } from "@/lib/adverts-db";
 import { ImageGallery } from "@/components/image-gallery";
 import { ContactButtons } from "@/components/contact-buttons";
 import { AdvertCard } from "@/components/advert-card";
+import { RatingWidget } from "@/components/rating-widget";
 import type { Advert } from "@/lib/data";
 
 type Props = {
@@ -86,14 +87,18 @@ export default async function AdvertDetailPage({ params }: Props) {
               <BadgeCheck className="h-3.5 w-3.5" />
               Verified cuddler
             </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-muted text-muted-foreground text-xs font-medium">
-              <Star className="h-3.5 w-3.5" />
-              Reviews coming soon
-            </span>
             <span className="px-2.5 py-1 rounded-lg bg-muted text-muted-foreground text-xs font-medium">
               Recently active
             </span>
           </div>
+        </section>
+
+        <section aria-label="Ratings" className="mb-6">
+          <RatingWidget
+            advertId={advert.id}
+            initialAvg={advert.ratingAvg}
+            initialCount={advert.ratingCount}
+          />
         </section>
 
         <section aria-label="Cuddle style and boundaries" className="mb-6">
