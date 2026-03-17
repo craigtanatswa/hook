@@ -66,9 +66,9 @@ export function AdvertCard({ advert }: AdvertCardProps) {
 
   return (
     <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-      {/* Media — portrait on mobile, landscape on desktop so full card fits on 15.6" screens */}
+      {/* Media — portrait ratio across all screen sizes */}
       <div
-        className="relative w-full aspect-[4/5] sm:aspect-[3/4] md:aspect-[4/3] overflow-hidden bg-muted group"
+        className="relative w-full aspect-[3/4] overflow-hidden bg-muted group"
         onMouseEnter={() => setHovering(true)}
         onMouseLeave={() => setHovering(false)}
       >

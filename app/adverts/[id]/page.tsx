@@ -1,21 +1,15 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, MapPin, Calendar } from "lucide-react";
-import { getAdvertById } from "@/lib/data";
+import { ArrowLeft, MapPin, Calendar, BadgeCheck, Star } from "lucide-react";
 import { fetchAdvertByIdWithMedia, fetchActiveAdvertsWithMedia } from "@/lib/adverts-db";
 import { ImageGallery } from "@/components/image-gallery";
 import { ContactButtons } from "@/components/contact-buttons";
 import { AdvertCard } from "@/components/advert-card";
-import { BadgeCheck, Star } from "lucide-react";
 import type { Advert } from "@/lib/data";
 
 type Props = {
   params: Promise<{ id: string }>;
 };
-
-function isUuid(id: string) {
-  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-}
 
 function suggestedFromList(all: Advert[], excludeId: string, category: string, limit: number) {
   const active = all.filter((a) => a.id !== excludeId && a.status === "active");
@@ -27,25 +21,11 @@ function suggestedFromList(all: Advert[], excludeId: string, category: string, l
 export default async function AdvertDetailPage({ params }: Props) {
   const { id } = await params;
 
-  let advert: Advert | null = null;
-  if (isUuid(id)) {
-    advert = await fetchAdvertByIdWithMedia(id);
-  }
-  if (!advert) {
-    advert = getAdvertById(id);
-  }
+  const advert = await fetchAdvertByIdWithMedia(id);
   if (!advert) notFound();
 
   const allActive = await fetchActiveAdvertsWithMedia();
-  const suggested =
-    allActive.length > 0
-      ? suggestedFromList(allActive, advert.id, advert.category, 6)
-      : suggestedFromList(
-          (await import("@/lib/data")).getActiveAdverts(),
-          advert.id,
-          advert.category,
-          6
-        );
+  const suggested = suggestedFromList(allActive, advert.id, advert.category, 6);
 
   const postedDate = new Date(advert.postedAt).toLocaleDateString("en-ZA", {
     day: "numeric",

@@ -7,27 +7,27 @@ import { AdvertCard } from "@/components/advert-card";
 import { FeaturedAdvertsSection } from "@/components/featured-adverts-section";
 import { FilterPanel } from "@/components/filter-panel";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { getActiveAdverts, getFeaturedAdverts } from "@/lib/data";
 import type { Advert } from "@/lib/data";
 import Link from "next/link";
 
 const ADVERTS_PER_PAGE = 10;
 
 export default function HomePage() {
-  const [allAdverts, setAllAdverts] = useState<Advert[]>(() => getActiveAdverts());
-  const [featuredAdverts, setFeaturedAdverts] = useState<Advert[]>(() => getFeaturedAdverts());
+  // null = loading; [] = loaded but empty; Advert[] = loaded with results
+  const [allAdverts, setAllAdverts] = useState<Advert[] | null>(null);
+  const [featuredAdverts, setFeaturedAdverts] = useState<Advert[]>([]);
 
   useEffect(() => {
     fetch("/api/adverts")
       .then((r) => r.json())
       .then((d: { adverts?: Advert[] }) => {
-        if (d.adverts && d.adverts.length > 0) {
-          setAllAdverts(d.adverts);
-          setFeaturedAdverts(d.adverts.filter((a) => a.featured));
-        }
+        const list = d.adverts ?? [];
+        setAllAdverts(list);
+        setFeaturedAdverts(list.filter((a) => a.featured));
       })
-      .catch(() => {});
+      .catch(() => setAllAdverts([]));
   }, []);
+
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("");
   const [category, setCategory] = useState("All");
@@ -40,7 +40,7 @@ export default function HomePage() {
 
   useEffect(() => setMounted(true), []);
 
-  const filtered = allAdverts.filter((a) => {
+  const filtered = (allAdverts ?? []).filter((a) => {
     const matchSearch =
       !search ||
       a.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -85,14 +85,13 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Top bar — full width */}
+      {/* Top bar */}
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border shrink-0">
         <div className="h-14 flex items-center gap-3 px-4 lg:pl-6">
           <Link href="/" className="text-2xl font-black text-primary tracking-tight shrink-0">
             Hook
           </Link>
 
-          {/* Search — shared; on lg+ main has margin so this can span */}
           <div className="flex-1 relative max-w-xl">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
             <input
@@ -104,7 +103,7 @@ export default function HomePage() {
             />
           </div>
 
-          {/* Mobile: open left filter sheet */}
+          {/* Mobile filter sheet trigger */}
           <Sheet open={mobileFiltersOpen} onOpenChange={setMobileFiltersOpen}>
             <SheetTrigger asChild>
               <button
@@ -157,9 +156,9 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* Body: left control panel + main */}
+      {/* Body: left filter panel + main content */}
       <div className="flex flex-1 min-h-0">
-        {/* Left filter control panel — desktop only */}
+        {/* Desktop filter sidebar */}
         <aside
           className="hidden lg:flex w-72 shrink-0 flex-col border-r border-border bg-muted/30"
           aria-label="Filter controls"
@@ -180,67 +179,88 @@ export default function HomePage() {
           </div>
         </aside>
 
-        {/* Main content */}
-        <main className="flex-1 min-w-0 px-4 py-6 lg:px-8 max-w-3xl mx-auto w-full">
+        {/* Main listing area */}
+        <main className="flex-1 min-w-0 px-4 py-6 lg:px-8 max-w-2xl mx-auto w-full">
           <div className="mb-8">
             <h1 className="text-3xl sm:text-4xl font-black text-foreground text-balance leading-tight">
               Someone sexy, on your sofa, tonight
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground mt-3 leading-relaxed">
               Hook is where consent-first cuddlers come to you—slow spooning, movie-night tangled legs, or deep rest with
-              arms that don’t quit. Pick a profile that makes your stomach flip, then message. No middleman, just heat
+              arms that don&apos;t quit. Pick a profile that makes your stomach flip, then message. No middleman, just heat
               (the cozy kind).
             </p>
           </div>
 
-          {filtered.length > 0 ? (
+          {/* Loading skeletons */}
+          {allAdverts === null && (
+            <div className="flex flex-col gap-6">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="bg-card border border-border rounded-2xl overflow-hidden animate-pulse">
+                  <div className="w-full aspect-[3/4] bg-muted" />
+                  <div className="p-5 space-y-3">
+                    <div className="flex justify-between gap-4">
+                      <div className="h-5 bg-muted rounded-lg w-2/5" />
+                      <div className="h-5 bg-muted rounded-lg w-1/5" />
+                    </div>
+                    <div className="h-4 bg-muted rounded-lg w-3/5" />
+                    <div className="h-4 bg-muted rounded-lg w-full" />
+                    <div className="h-4 bg-muted rounded-lg w-4/5" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Loaded with results */}
+          {allAdverts !== null && filtered.length > 0 && (
             <>
               {featuredAdverts.length > 0 && currentPage === 1 && noExtraFilters && (
                 <div className="mb-8">
-                  <h2 className="text-lg font-bold text-foreground mb-3">Tonight’s crush</h2>
+                  <h2 className="text-lg font-bold text-foreground mb-3">Tonight&apos;s crush</h2>
                   <FeaturedAdvertsSection adverts={featuredAdverts} />
                 </div>
               )}
 
-              {featuredAdverts.length > 0 &&
-                !noExtraFilters &&
-                filtered.some((a) => a.featured) && (
-                  <div className="mb-6">
-                    <h2 className="text-lg font-bold text-foreground mb-3">Still turning heads in your search</h2>
-                    <FeaturedAdvertsSection adverts={filtered.filter((a) => a.featured)} />
-                  </div>
-                )}
+              {featuredAdverts.length > 0 && !noExtraFilters && filtered.some((a) => a.featured) && (
+                <div className="mb-6">
+                  <h2 className="text-lg font-bold text-foreground mb-3">Still turning heads in your search</h2>
+                  <FeaturedAdvertsSection adverts={filtered.filter((a) => a.featured)} />
+                </div>
+              )}
 
-              <div className="flex items-center justify-between mb-4">
-                <button
-                  type="button"
-                  onClick={() => goToPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  aria-label="Previous page"
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-muted text-muted-foreground hover:bg-accent hover:text-foreground"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Prev
-                </button>
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mb-4">
+                  <button
+                    type="button"
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    aria-label="Previous page"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-muted text-muted-foreground hover:bg-accent hover:text-foreground"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Prev
+                  </button>
 
-                <p className="text-xs text-muted-foreground font-medium">
-                  {filtered.length} {filtered.length === 1 ? "cuddler" : "cuddlers"} — Page {currentPage} of{" "}
-                  {totalPages}
-                </p>
+                  <p className="text-xs text-muted-foreground font-medium">
+                    {filtered.length} {filtered.length === 1 ? "cuddler" : "cuddlers"} — Page {currentPage} of {totalPages}
+                  </p>
 
-                <button
-                  type="button"
-                  onClick={() => goToPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  aria-label="Next page"
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-muted text-muted-foreground hover:bg-accent hover:text-foreground"
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-              </div>
+                  <button
+                    type="button"
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    aria-label="Next page"
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors disabled:opacity-40 disabled:cursor-not-allowed bg-muted text-muted-foreground hover:bg-accent hover:text-foreground"
+                  >
+                    Next
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              {/* Single-column listing — portrait ratio favored */}
+              <div className="flex flex-col gap-6">
                 {paginatedAdverts.map((advert) => (
                   <AdvertCard key={advert.id} advert={advert} />
                 ))}
@@ -267,11 +287,14 @@ export default function HomePage() {
                 </div>
               )}
             </>
-          ) : (
+          )}
+
+          {/* Loaded — filters return nothing */}
+          {allAdverts !== null && allAdverts.length > 0 && filtered.length === 0 && (
             <div className="text-center py-20">
-              <p className="font-semibold text-foreground text-xl">Nobody matching that fantasy (yet)</p>
+              <p className="font-semibold text-foreground text-xl">Nobody matching that vibe (yet)</p>
               <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">
-                Widen your area or clear filters—there’s always another pair of arms loading.
+                Widen your filters — there&apos;s always another pair of arms loading.
               </p>
               <button
                 type="button"
@@ -280,6 +303,16 @@ export default function HomePage() {
               >
                 Clear all filters
               </button>
+            </div>
+          )}
+
+          {/* Loaded — database has no live listings at all */}
+          {allAdverts !== null && allAdverts.length === 0 && (
+            <div className="text-center py-20">
+              <p className="font-semibold text-foreground text-xl">No listings live yet</p>
+              <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">
+                Check back soon — cuddlers are on their way.
+              </p>
             </div>
           )}
         </main>

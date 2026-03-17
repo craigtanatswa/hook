@@ -1,16 +1,16 @@
 import Link from "next/link";
-import { adverts, getActiveAdverts, getExpiredAdverts } from "@/lib/data";
+import { fetchAllAdvertsWithMediaForAdmin } from "@/lib/adverts-db";
 import { CheckCircle2, Clock, LayoutGrid, PlusCircle, ArrowRight } from "lucide-react";
 
-export default function AdminDashboard() {
-  const active = getActiveAdverts();
-  const expired = getExpiredAdverts();
-  const total = adverts.length;
+export default async function AdminDashboard() {
+  const all = await fetchAllAdvertsWithMediaForAdmin();
+  const active = all.filter((a) => a.status === "active");
+  const expired = all.filter((a) => a.status === "expired");
 
   const stats = [
     {
       label: "Total listings",
-      value: total,
+      value: all.length,
       icon: LayoutGrid,
       color: "text-foreground",
       bg: "bg-card",
@@ -35,7 +35,7 @@ export default function AdminDashboard() {
     <div className="p-6 max-w-3xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-black text-foreground">Dashboard</h1>
-        <p className="text-sm text-muted-foreground mt-1">Who’s live, who’s expired, who’s about to get booked</p>
+        <p className="text-sm text-muted-foreground mt-1">Who&apos;s live, who&apos;s expired, who&apos;s about to get booked</p>
       </div>
 
       {/* Stats cards */}

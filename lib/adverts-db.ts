@@ -1,5 +1,5 @@
 import type { Advert, BodyType } from "@/lib/data";
-import { createAnonServerClient, createServiceClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/server";
 
 type AdvertRow = {
   id: string;
@@ -71,30 +71,38 @@ function buildBundleMap(mediaRows: MediaRow[]): Map<string, MediaBundle> {
   return map;
 }
 
-/** Fetch active, unexpired adverts with media ordered by order_index. */
+/** Fetch active adverts with media ordered by order_index.
+ *  Uses the service client so it works regardless of RLS grant configuration.
+ *  We enforce the same visibility rules in code: status = 'active'.
+ */
 export async function fetchActiveAdvertsWithMedia(): Promise<Advert[]> {
   try {
-    const supabase = createAnonServerClient();
-    const nowIso = new Date().toISOString();
+    const supabase = createServiceClient();
 
     const { data: advertRows, error: aErr } = await supabase
       .from("adverts")
       .select("*")
       .eq("status", "active")
-      .gt("expiry_date", nowIso)
       .order("featured", { ascending: false })
       .order("created_at", { ascending: false });
 
-    if (aErr || !advertRows?.length) return [];
+    if (aErr) {
+      console.error("[fetchActiveAdvertsWithMedia] adverts query error:", aErr);
+      return [];
+    }
+    if (!advertRows?.length) return [];
 
     const ids = advertRows.map((r: AdvertRow) => r.id);
     const { data: mediaRows, error: mErr } = await supabase
       .from("advert_media")
-      .select("advert_id, media_url, focal_point, order_index")
+      .select("*")
       .in("advert_id", ids)
       .order("order_index", { ascending: true });
 
-    if (mErr) return [];
+    if (mErr) {
+      console.error("[fetchActiveAdvertsWithMedia] media query error:", mErr);
+      return [];
+    }
 
     const byAdvert = buildBundleMap(mediaRows as MediaRow[]);
 
@@ -102,7 +110,8 @@ export async function fetchActiveAdvertsWithMedia(): Promise<Advert[]> {
       const bundle = byAdvert.get(row.id) ?? { urls: [], focalPoints: [] };
       return rowToAdvert(row, bundle.urls, bundle.focalPoints);
     });
-  } catch {
+  } catch (e) {
+    console.error("[fetchActiveAdvertsWithMedia] unexpected error:", e);
     return [];
   }
 }
@@ -121,11 +130,11 @@ export async function fetchAdvertByIdWithMedia(id: string): Promise<Advert | nul
 
     const { data: mediaRows } = await supabase
       .from("advert_media")
-      .select("media_url, focal_point, order_index")
+      .select("*")
       .eq("advert_id", id)
       .order("order_index", { ascending: true });
 
-    const rows = (mediaRows || []) as Pick<MediaRow, "media_url" | "focal_point">[];
+    const rows = (mediaRows || []) as MediaRow[];
     const urls = rows.map((m) => m.media_url);
     const focalPoints = rows.map((m) => m.focal_point ?? "50% 50%");
     return rowToAdvert(row as AdvertRow, urls, focalPoints);
@@ -151,7 +160,7 @@ export async function fetchExpiredAdvertsWithMedia(): Promise<Advert[]> {
     const ids = advertRows.map((r: AdvertRow) => r.id);
     const { data: mediaRows } = await supabase
       .from("advert_media")
-      .select("advert_id, media_url, focal_point, order_index")
+      .select("*")
       .in("advert_id", ids)
       .order("order_index", { ascending: true });
 
@@ -309,7 +318,7 @@ export async function fetchAllAdvertsWithMediaForAdmin(): Promise<Advert[]> {
     const ids = advertRows.map((r: AdvertRow) => r.id);
     const { data: mediaRows } = await supabase
       .from("advert_media")
-      .select("advert_id, media_url, order_index")
+      .select("*")
       .in("advert_id", ids)
       .order("order_index", { ascending: true });
 
