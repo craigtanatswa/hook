@@ -9,6 +9,16 @@ type Props = {
   params: Promise<{ id: string }>;
 };
 
+function remainingDaysFromUntil(untilIso?: string): string {
+  if (!untilIso) return "7";
+  const until = new Date(untilIso);
+  const now = new Date();
+  const ms = until.getTime() - now.getTime();
+  // Round up so if there's 1.2 days left we show "2"
+  const days = Math.ceil(ms / (24 * 60 * 60 * 1000));
+  return String(Math.max(1, days));
+}
+
 export default async function EditAdvertPage({ params }: Props) {
   const { id } = await params;
 
@@ -16,6 +26,7 @@ export default async function EditAdvertPage({ params }: Props) {
   if (!advert) notFound();
 
   const boundUpdate = updateAdvertAction.bind(null, advert.id);
+  const featuredDaysDefault = remainingDaysFromUntil(advert.featuredUntil);
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
@@ -50,6 +61,7 @@ export default async function EditAdvertPage({ params }: Props) {
             mediaUrls: advert.images.join("\n"),
             mediaFocalPoints: advert.imageFocalPoints?.join("\n"),
             featured: advert.featured ? "true" : undefined,
+            featuredDays: featuredDaysDefault,
           }}
           submitLabel="Save changes"
         />

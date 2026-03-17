@@ -23,6 +23,7 @@ function parseMediaUrls(formData: FormData): string[] {
 }
 
 function buildInput(formData: FormData): AdvertInput | { error: string } {
+  const isEdit = formData.get("is_edit") === "1";
   const name = String(formData.get("name") || "").trim();
   const age = parseInt(String(formData.get("age") || "0"), 10);
   const location = String(formData.get("location") || "").trim();
@@ -34,11 +35,9 @@ function buildInput(formData: FormData): AdvertInput | { error: string } {
   const whatsapp = String(formData.get("whatsapp") || "").trim();
   const email = String(formData.get("email") || "").trim() || undefined;
   const expiryRaw = String(formData.get("expiry") || "30");
-  const expiryDays =
-    expiryRaw === "custom"
-      ? parseInt(String(formData.get("custom_expiry_days") || "14"), 10) || 14
-      : parseInt(expiryRaw, 10) || 30;
   const featured = formData.get("featured") === "on";
+  const featuredDurationRaw = String(formData.get("featured_days") || "7");
+  const featuredDays = featured ? Math.max(1, parseInt(featuredDurationRaw, 10) || 7) : undefined;
   const mediaUrls = parseMediaUrls(formData);
   const focalPointsRaw = String(formData.get("media_focal_points") ?? "");
   const focalPoints = focalPointsRaw
@@ -50,6 +49,20 @@ function buildInput(formData: FormData): AdvertInput | { error: string } {
   }
   if (mediaUrls.length === 0) {
     return { error: "Please add at least one photo before publishing." };
+  }
+
+  // Editing: keep current expiry by default unless admin explicitly changes it.
+  let expiryDays: number | undefined;
+  if (!isEdit) {
+    expiryDays =
+      expiryRaw === "custom"
+        ? parseInt(String(formData.get("custom_expiry_days") || "14"), 10) || 14
+        : parseInt(expiryRaw, 10) || 30;
+  } else if (expiryRaw && expiryRaw !== "keep") {
+    expiryDays =
+      expiryRaw === "custom"
+        ? parseInt(String(formData.get("custom_expiry_days") || "14"), 10) || 14
+        : parseInt(expiryRaw, 10) || 30;
   }
 
   return {
@@ -66,6 +79,7 @@ function buildInput(formData: FormData): AdvertInput | { error: string } {
     email,
     expiryDays,
     featured,
+    featuredDays,
     mediaUrls,
     focalPoints,
   };

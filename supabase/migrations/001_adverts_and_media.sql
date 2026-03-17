@@ -17,6 +17,7 @@ create table if not exists public.adverts (
   expiry_date timestamptz not null,
   status text not null default 'active' check (status in ('active', 'expired')),
   featured boolean not null default false,
+  featured_until timestamptz,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

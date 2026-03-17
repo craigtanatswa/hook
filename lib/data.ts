@@ -22,6 +22,7 @@ export type Advert = {
   expiresAt: string;
   status: "active" | "expired";
   featured?: boolean;
+  featuredUntil?: string;
 };
 
 export const adverts: Advert[] = [

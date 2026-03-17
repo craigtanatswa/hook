@@ -17,6 +17,7 @@ type AdvertRow = {
   expiry_date: string;
   status: "active" | "expired";
   featured: boolean;
+  featured_until?: string | null;
   created_at: string;
 };
 
@@ -36,6 +37,9 @@ function rowToAdvert(row: AdvertRow, mediaUrls: string[], focalPoints?: string[]
   const expires = new Date(row.expiry_date);
   const status: "active" | "expired" =
     row.status === "expired" || expires <= now ? "expired" : "active";
+  const featuredUntilIso = row.featured_until ?? undefined;
+  const featuredUntilDate = featuredUntilIso ? new Date(featuredUntilIso) : null;
+  const isFeatured = Boolean(row.featured) && (!featuredUntilDate || featuredUntilDate > now);
 
   return {
     id: row.id,
@@ -56,7 +60,8 @@ function rowToAdvert(row: AdvertRow, mediaUrls: string[], focalPoints?: string[]
     postedAt: row.created_at,
     expiresAt: row.expiry_date,
     status,
-    featured: row.featured,
+    featured: isFeatured,
+    featuredUntil: featuredUntilIso,
   };
 }
 
@@ -187,8 +192,9 @@ export type AdvertInput = {
   phone: string;
   whatsapp: string;
   email?: string;
-  expiryDays: number;
+  expiryDays?: number;
   featured: boolean;
+  featuredDays?: number;
   mediaUrls: string[];
   focalPoints?: string[];
 };
@@ -202,7 +208,10 @@ function expiryDateFromDays(days: number): string {
 export async function insertAdvertWithMedia(input: AdvertInput): Promise<{ id: string } | { error: string }> {
   try {
     const supabase = createServiceClient();
-    const expiry_date = expiryDateFromDays(input.expiryDays);
+    const expiryDays = input.expiryDays ?? 30;
+    const expiry_date = expiryDateFromDays(expiryDays);
+    const featured_until =
+      input.featured && input.featuredDays ? expiryDateFromDays(input.featuredDays) : null;
 
     const { data: advert, error: aErr } = await supabase
       .from("adverts")
@@ -221,6 +230,7 @@ export async function insertAdvertWithMedia(input: AdvertInput): Promise<{ id: s
         expiry_date,
         status: "active",
         featured: input.featured,
+        featured_until,
       })
       .select("id")
       .single();
@@ -256,26 +266,32 @@ export async function updateAdvertWithMedia(
 ): Promise<{ ok: true } | { error: string }> {
   try {
     const supabase = createServiceClient();
-    const expiry_date = expiryDateFromDays(input.expiryDays);
+    const featured_until =
+      input.featured && input.featuredDays ? expiryDateFromDays(input.featuredDays) : null;
+
+    const advertUpdate: Record<string, unknown> = {
+      name: input.name,
+      age: input.age,
+      location: input.location,
+      gender: input.gender,
+      body_type: input.bodyType,
+      category: input.category,
+      short_description: input.shortDescription.slice(0, 500),
+      full_description: input.fullDescription,
+      phone: input.phone,
+      whatsapp: input.whatsapp,
+      email: input.email || null,
+      featured: input.featured,
+      featured_until,
+      updated_at: new Date().toISOString(),
+    };
+    if (typeof input.expiryDays === "number" && Number.isFinite(input.expiryDays)) {
+      advertUpdate.expiry_date = expiryDateFromDays(input.expiryDays);
+    }
 
     const { error: uErr } = await supabase
       .from("adverts")
-      .update({
-        name: input.name,
-        age: input.age,
-        location: input.location,
-        gender: input.gender,
-        body_type: input.bodyType,
-        category: input.category,
-        short_description: input.shortDescription.slice(0, 500),
-        full_description: input.fullDescription,
-        phone: input.phone,
-        whatsapp: input.whatsapp,
-        email: input.email || null,
-        expiry_date,
-        featured: input.featured,
-        updated_at: new Date().toISOString(),
-      })
+      .update(advertUpdate)
       .eq("id", id);
 
     if (uErr) return { error: uErr.message };

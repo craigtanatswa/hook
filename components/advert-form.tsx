@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { genders, bodyTypes, categories, zimbabweCities } from "@/lib/data";
 import { MediaUploader } from "@/components/media-uploader";
@@ -23,6 +23,7 @@ type AdvertFormProps = {
     category?: string;
     expiry?: string;
     featured?: string;
+    featuredDays?: string;
     mediaUrls?: string;
     mediaFocalPoints?: string;
   };
@@ -43,8 +44,13 @@ export function AdvertForm({
   const [mediaError, setMediaError] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
   const [successName, setSuccessName] = useState<string | null>(null);
-  const [expiryChoice, setExpiryChoice] = useState(defaultValues.expiry || "30");
+  const [expiryChoice, setExpiryChoice] = useState(isEdit ? "keep" : (defaultValues.expiry || "30"));
   const [customDays, setCustomDays] = useState("14");
+  const defaultFeaturedDays = useMemo(() => {
+    const v = parseInt(String(defaultValues.featuredDays || "7"), 10);
+    return Number.isFinite(v) && v > 0 ? String(v) : "7";
+  }, [defaultValues.featuredDays]);
+  const [featuredDays, setFeaturedDays] = useState(defaultFeaturedDays);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -117,6 +123,7 @@ export function AdvertForm({
       {/* ── Form ───────────────────────────────────────────────────── */}
       <form onSubmit={handleSubmit} className="space-y-6">
         {advertId && <input type="hidden" name="advert_id" value={advertId} />}
+        <input type="hidden" name="is_edit" value={isEdit ? "1" : "0"} />
 
         <MediaUploader
           defaultUrls={defaultValues.mediaUrls}
@@ -323,6 +330,7 @@ export function AdvertForm({
             onChange={(e) => setExpiryChoice(e.target.value)}
             className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
+            {isEdit && <option value="keep">Keep current time left</option>}
             <option value="1">1 day</option>
             <option value="7">7 days</option>
             <option value="30">30 days</option>
@@ -352,13 +360,29 @@ export function AdvertForm({
             defaultChecked={defaultValues.featured === "true"}
             className="mt-0.5 h-4 w-4 rounded border-border accent-primary cursor-pointer"
           />
-          <div>
+          <div className="flex-1">
             <label htmlFor="featured" className="text-sm font-semibold text-foreground cursor-pointer">
               Feature this listing
             </label>
             <p className="text-xs text-muted-foreground mt-0.5">
               Featured profiles hit the hero strip first.
             </p>
+            <div className="mt-3 flex items-center gap-3">
+              <label className="text-xs font-semibold text-muted-foreground" htmlFor="featured_days">
+                Featured for
+              </label>
+              <input
+                id="featured_days"
+                name="featured_days"
+                type="number"
+                min={1}
+                max={365}
+                value={featuredDays}
+                onChange={(e) => setFeaturedDays(e.target.value)}
+                className="w-24 rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <span className="text-sm text-muted-foreground">day(s)</span>
+            </div>
           </div>
         </div>
 
