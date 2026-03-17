@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, ChevronLeft, ChevronRight } from "lucide-react";
@@ -15,6 +15,10 @@ export function FeaturedAdvertsSection({ adverts }: FeaturedAdvertsSectionProps)
   const [currentIndex, setCurrentIndex] = useState(0);
 
   if (adverts.length === 0) return null;
+
+  useEffect(() => {
+    if (currentIndex >= adverts.length) setCurrentIndex(0);
+  }, [adverts.length, currentIndex]);
 
   const current = adverts[currentIndex];
   const goNext = () => setCurrentIndex((i) => (i + 1) % adverts.length);
