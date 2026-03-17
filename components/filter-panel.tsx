@@ -1,7 +1,7 @@
 "use client";
 
-import { MapPin, X } from "lucide-react";
-import { categories, genders, bodyTypes } from "@/lib/data";
+import { MapPin } from "lucide-react";
+import { categories, genders, bodyTypes, zimbabweCities } from "@/lib/data";
 
 type FilterPanelProps = {
   location: string;
@@ -63,24 +63,19 @@ export function FilterPanel({
         </label>
         <div className="relative">
           <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-          <input
+          <select
             id="filter-location"
-            type="text"
             value={location}
             onChange={(e) => onLocationChange(e.target.value)}
-            placeholder="City, suburb..."
-            className="w-full pl-9 pr-8 py-2 text-sm rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
-          />
-          {location && (
-            <button
-              type="button"
-              onClick={() => onLocationChange("")}
-              aria-label="Clear location"
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          )}
+            className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring appearance-none"
+          >
+            <option value="">All cities</option>
+            {zimbabweCities.map((city) => (
+              <option key={city} value={city}>
+                {city}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

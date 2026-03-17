@@ -71,7 +71,7 @@ export default async function AdvertDetailPage({ params }: Props) {
 
       <main className="max-w-lg mx-auto px-4 py-6 pb-28 sm:pb-6">
         <div className="mb-6 -mx-4 sm:mx-0 sm:rounded-3xl overflow-hidden">
-          <ImageGallery images={advert.images} name={advert.name} />
+          <ImageGallery images={advert.images} name={advert.name} focalPoints={advert.imageFocalPoints} />
         </div>
 
         <section className="mb-6">

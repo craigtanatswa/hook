@@ -5,7 +5,7 @@ export type Advert = {
   name: string;
   age: number;
   location: string;
-  /** e.g. Female, Male, Non-binary */
+  /** e.g. Female, Male */
   gender: string;
   /** Fit | Thick | Average | Slender */
   bodyType: BodyType;
@@ -16,6 +16,7 @@ export type Advert = {
   whatsapp: string;
   email?: string;
   images: string[];
+  imageFocalPoints?: string[];
   profileImage: string;
   postedAt: string;
   expiresAt: string;
@@ -221,6 +222,35 @@ export const getSuggestedAdverts = (
   return [...sameCat, ...otherCat].slice(0, limit);
 };
 
+export const zimbabweCities = [
+  "Harare",
+  "Bulawayo",
+  "Chitungwiza",
+  "Mutare",
+  "Gweru",
+  "Kwekwe",
+  "Kadoma",
+  "Masvingo",
+  "Chinhoyi",
+  "Marondera",
+  "Norton",
+  "Chegutu",
+  "Zvishavane",
+  "Bindura",
+  "Beitbridge",
+  "Hwange",
+  "Kariba",
+  "Rusape",
+  "Chiredzi",
+  "Victoria Falls",
+  "Gokwe",
+  "Shurugwi",
+  "Chipinge",
+  "Redcliff",
+] as const;
+
+export type ZimbabweCity = (typeof zimbabweCities)[number];
+
 export const categories = [
   "All",
   "Soft & slow",
@@ -231,6 +261,6 @@ export const categories = [
   "Overnight vibe",
 ];
 
-export const genders = ["All", "Female", "Male", "Non-binary"] as const;
+export const genders = ["All", "Female", "Male"] as const;
 
 export const bodyTypes: (BodyType | "All")[] = ["All", "Fit", "Thick", "Average", "Slender"];

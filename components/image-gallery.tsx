@@ -7,13 +7,14 @@ import { ChevronLeft, ChevronRight, Film } from "lucide-react";
 type ImageGalleryProps = {
   images: string[];
   name: string;
+  focalPoints?: string[];
 };
 
 function isVideo(url: string) {
   return /\.(mp4|mov|webm)(\?|$)/i.test(url);
 }
 
-export function ImageGallery({ images, name }: ImageGalleryProps) {
+export function ImageGallery({ images, name, focalPoints }: ImageGalleryProps) {
   const [current, setCurrent] = useState(0);
   const [touchStart, setTouchStart] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -37,6 +38,7 @@ export function ImageGallery({ images, name }: ImageGalleryProps) {
 
   const currentSrc = images[current];
   const currentIsVideo = isVideo(currentSrc);
+  const currentFocalPoint = focalPoints?.[current] ?? "50% 50%";
 
   return (
     <div className="w-full" ref={containerRef}>
@@ -67,6 +69,7 @@ export function ImageGallery({ images, name }: ImageGalleryProps) {
             alt={`${name} — photo ${current + 1}`}
             fill
             className="object-cover"
+            style={{ objectPosition: currentFocalPoint }}
             priority={current === 0}
           />
         )}

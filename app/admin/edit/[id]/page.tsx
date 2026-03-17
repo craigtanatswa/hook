@@ -65,6 +65,7 @@ export default async function EditAdvertPage({ params }: Props) {
             email: advert.email,
             description: advert.fullDescription,
             mediaUrls: advert.images.join("\n"),
+            mediaFocalPoints: advert.imageFocalPoints?.join("\n"),
             featured: advert.featured ? "true" : undefined,
           }}
           submitLabel={isUuid(advert.id) ? "Save changes" : "Legacy — use DB listing"}

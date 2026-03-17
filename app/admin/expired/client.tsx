@@ -1,0 +1,161 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { MapPin, Pencil, Trash2, Search } from "lucide-react";
+import { deleteAdvertAction } from "@/app/actions/adverts";
+import { RepostButton } from "@/components/repost-button";
+
+function isUuid(id: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+}
+
+interface Advert {
+  id: string;
+  name: string;
+  location: string;
+  category: string;
+  expiresAt: string;
+  images: string[];
+  profileImage: string;
+}
+
+interface Props {
+  adverts: Advert[];
+}
+
+export function ExpiredAdvertsClient({ adverts }: Props) {
+  const [query, setQuery] = useState("");
+
+  const filtered = useMemo(() => {
+    const q = query.toLowerCase().trim();
+    if (!q) return adverts;
+    return adverts.filter(
+      (a) =>
+        a.name.toLowerCase().includes(q) ||
+        a.location.toLowerCase().includes(q) ||
+        a.category.toLowerCase().includes(q)
+    );
+  }, [adverts, query]);
+
+  return (
+    <div className="p-6 max-w-5xl mx-auto">
+      <div className="mb-8">
+        <h1 className="text-2xl font-black text-foreground">Expired listings</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          {filtered.length} of {adverts.length} expired listings shown
+        </p>
+      </div>
+
+      {/* Search */}
+      {adverts.length > 0 && (
+        <div className="relative mb-6">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <input
+            type="search"
+            placeholder="Search by name, location or category…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+      )}
+
+      {filtered.length === 0 ? (
+        <div className="bg-card rounded-2xl border border-border px-4 py-16 text-center">
+          {query ? (
+            <>
+              <p className="font-semibold text-foreground">No results for "{query}"</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Try a different name, location or category.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="font-semibold text-foreground">Nothing in the graveyard</p>
+              <p className="text-sm text-muted-foreground mt-1">
+                Every profile is still live — nice problem to have.
+              </p>
+            </>
+          )}
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filtered.map((advert) => {
+            const expiredDate = new Date(advert.expiresAt).toLocaleDateString("en-ZA", {
+              day: "numeric",
+              month: "short",
+              year: "numeric",
+            });
+            const uuid = isUuid(advert.id);
+
+            return (
+              <div
+                key={advert.id}
+                className="bg-card rounded-2xl border border-border overflow-hidden hover:shadow-lg transition-shadow flex flex-col"
+              >
+                <div className="relative w-full aspect-square bg-muted overflow-hidden shrink-0">
+                  <Image
+                    src={advert.images[0] || advert.profileImage}
+                    alt={`${advert.name}'s listing`}
+                    fill
+                    className="object-cover opacity-70"
+                  />
+                  <div className="absolute top-2 left-2 px-2.5 py-1 rounded-lg bg-destructive/90 text-white text-xs font-bold">
+                    Expired
+                  </div>
+                </div>
+
+                <div className="p-3 flex flex-col gap-3 flex-1">
+                  <div>
+                    <h3 className="font-bold text-foreground text-sm truncate">{advert.name}</h3>
+                    <div className="flex items-center gap-1 mt-0.5">
+                      <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
+                      <p className="text-xs text-muted-foreground truncate">{advert.location}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      {advert.category} · Expired {expiredDate}
+                    </p>
+                  </div>
+
+                  {uuid ? (
+                    <RepostButton advertId={advert.id} advertName={advert.name} />
+                  ) : (
+                    <p className="text-xs text-muted-foreground italic">
+                      Legacy listing — create a new one to re-publish.
+                    </p>
+                  )}
+
+                  <div className="flex gap-2 mt-auto">
+                    <Link
+                      href={`/admin/edit/${advert.id}`}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-muted text-muted-foreground hover:bg-accent hover:text-foreground transition-colors text-xs font-medium"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                      Edit
+                    </Link>
+                    {uuid && (
+                      <form
+                        action={deleteAdvertAction.bind(null, advert.id)}
+                        className="flex-1"
+                      >
+                        <button
+                          type="submit"
+                          className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-destructive/10 text-destructive hover:bg-destructive hover:text-white transition-colors text-xs font-medium"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Delete
+                        </button>
+                      </form>
+                    )}
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

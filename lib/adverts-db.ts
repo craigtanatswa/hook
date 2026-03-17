@@ -25,9 +25,12 @@ type MediaRow = {
   media_url: string;
   media_type: string;
   order_index: number;
+  focal_point?: string | null;
 };
 
-function rowToAdvert(row: AdvertRow, mediaUrls: string[]): Advert {
+type MediaBundle = { urls: string[]; focalPoints: string[] };
+
+function rowToAdvert(row: AdvertRow, mediaUrls: string[], focalPoints?: string[]): Advert {
   const images = mediaUrls.length > 0 ? mediaUrls : ["/placeholder.svg"];
   const now = new Date();
   const expires = new Date(row.expiry_date);
@@ -48,12 +51,24 @@ function rowToAdvert(row: AdvertRow, mediaUrls: string[]): Advert {
     whatsapp: row.whatsapp,
     email: row.email ?? undefined,
     images,
+    imageFocalPoints: focalPoints && focalPoints.length > 0 ? focalPoints : undefined,
     profileImage: images[0],
     postedAt: row.created_at,
     expiresAt: row.expiry_date,
     status,
     featured: row.featured,
   };
+}
+
+function buildBundleMap(mediaRows: MediaRow[]): Map<string, MediaBundle> {
+  const map = new Map<string, MediaBundle>();
+  for (const m of mediaRows || []) {
+    const existing = map.get(m.advert_id) ?? { urls: [], focalPoints: [] };
+    existing.urls.push(m.media_url);
+    existing.focalPoints.push(m.focal_point ?? "50% 50%");
+    map.set(m.advert_id, existing);
+  }
+  return map;
 }
 
 /** Fetch active, unexpired adverts with media ordered by order_index. */
@@ -75,22 +90,18 @@ export async function fetchActiveAdvertsWithMedia(): Promise<Advert[]> {
     const ids = advertRows.map((r: AdvertRow) => r.id);
     const { data: mediaRows, error: mErr } = await supabase
       .from("advert_media")
-      .select("advert_id, media_url, order_index")
+      .select("advert_id, media_url, focal_point, order_index")
       .in("advert_id", ids)
       .order("order_index", { ascending: true });
 
     if (mErr) return [];
 
-    const byAdvert = new Map<string, string[]>();
-    for (const m of (mediaRows || []) as MediaRow[]) {
-      const list = byAdvert.get(m.advert_id) || [];
-      list.push(m.media_url);
-      byAdvert.set(m.advert_id, list);
-    }
+    const byAdvert = buildBundleMap(mediaRows as MediaRow[]);
 
-    return (advertRows as AdvertRow[]).map((row) =>
-      rowToAdvert(row, byAdvert.get(row.id) || [])
-    );
+    return (advertRows as AdvertRow[]).map((row) => {
+      const bundle = byAdvert.get(row.id) ?? { urls: [], focalPoints: [] };
+      return rowToAdvert(row, bundle.urls, bundle.focalPoints);
+    });
   } catch {
     return [];
   }
@@ -110,12 +121,14 @@ export async function fetchAdvertByIdWithMedia(id: string): Promise<Advert | nul
 
     const { data: mediaRows } = await supabase
       .from("advert_media")
-      .select("media_url, order_index")
+      .select("media_url, focal_point, order_index")
       .eq("advert_id", id)
       .order("order_index", { ascending: true });
 
-    const urls = (mediaRows || []).map((m: { media_url: string }) => m.media_url);
-    return rowToAdvert(row as AdvertRow, urls);
+    const rows = (mediaRows || []) as Pick<MediaRow, "media_url" | "focal_point">[];
+    const urls = rows.map((m) => m.media_url);
+    const focalPoints = rows.map((m) => m.focal_point ?? "50% 50%");
+    return rowToAdvert(row as AdvertRow, urls, focalPoints);
   } catch {
     return null;
   }
@@ -138,20 +151,16 @@ export async function fetchExpiredAdvertsWithMedia(): Promise<Advert[]> {
     const ids = advertRows.map((r: AdvertRow) => r.id);
     const { data: mediaRows } = await supabase
       .from("advert_media")
-      .select("advert_id, media_url, order_index")
+      .select("advert_id, media_url, focal_point, order_index")
       .in("advert_id", ids)
       .order("order_index", { ascending: true });
 
-    const byAdvert = new Map<string, string[]>();
-    for (const m of (mediaRows || []) as MediaRow[]) {
-      const list = byAdvert.get(m.advert_id) || [];
-      list.push(m.media_url);
-      byAdvert.set(m.advert_id, list);
-    }
+    const byAdvert = buildBundleMap(mediaRows as MediaRow[]);
 
-    return (advertRows as AdvertRow[]).map((row) =>
-      rowToAdvert({ ...row, status: "expired" }, byAdvert.get(row.id) || [])
-    );
+    return (advertRows as AdvertRow[]).map((row) => {
+      const bundle = byAdvert.get(row.id) ?? { urls: [], focalPoints: [] };
+      return rowToAdvert({ ...row, status: "expired" }, bundle.urls, bundle.focalPoints);
+    });
   } catch {
     return [];
   }
@@ -172,6 +181,7 @@ export type AdvertInput = {
   expiryDays: number;
   featured: boolean;
   mediaUrls: string[];
+  focalPoints?: string[];
 };
 
 function expiryDateFromDays(days: number): string {
@@ -217,6 +227,7 @@ export async function insertAdvertWithMedia(input: AdvertInput): Promise<{ id: s
         media_url,
         media_type: "image" as const,
         order_index,
+        focal_point: input.focalPoints?.[order_index] ?? "50% 50%",
       }));
 
     if (mediaRows.length > 0) {
@@ -270,6 +281,7 @@ export async function updateAdvertWithMedia(
         media_url,
         media_type: "image" as const,
         order_index,
+        focal_point: input.focalPoints?.[order_index] ?? "50% 50%",
       }));
 
     if (mediaRows.length > 0) {
@@ -301,16 +313,12 @@ export async function fetchAllAdvertsWithMediaForAdmin(): Promise<Advert[]> {
       .in("advert_id", ids)
       .order("order_index", { ascending: true });
 
-    const byAdvert = new Map<string, string[]>();
-    for (const m of (mediaRows || []) as MediaRow[]) {
-      const list = byAdvert.get(m.advert_id) || [];
-      list.push(m.media_url);
-      byAdvert.set(m.advert_id, list);
-    }
+    const byAdvert = buildBundleMap(mediaRows as MediaRow[]);
 
-    return (advertRows as AdvertRow[]).map((row) =>
-      rowToAdvert(row, byAdvert.get(row.id) || [])
-    );
+    return (advertRows as AdvertRow[]).map((row) => {
+      const bundle = byAdvert.get(row.id) ?? { urls: [], focalPoints: [] };
+      return rowToAdvert(row, bundle.urls, bundle.focalPoints);
+    });
   } catch {
     return [];
   }

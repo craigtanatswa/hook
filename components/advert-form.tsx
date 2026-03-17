@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { genders, bodyTypes, categories } from "@/lib/data";
+import { genders, bodyTypes, categories, zimbabweCities } from "@/lib/data";
 import { MediaUploader } from "@/components/media-uploader";
 import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
@@ -24,6 +24,7 @@ type AdvertFormProps = {
     expiry?: string;
     featured?: string;
     mediaUrls?: string;
+    mediaFocalPoints?: string;
   };
   action?: (formData: FormData) => Promise<ActionResult>;
   submitLabel?: string;
@@ -42,6 +43,8 @@ export function AdvertForm({
   const [mediaError, setMediaError] = useState<string | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
   const [successName, setSuccessName] = useState<string | null>(null);
+  const [expiryChoice, setExpiryChoice] = useState(defaultValues.expiry || "30");
+  const [customDays, setCustomDays] = useState("14");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -115,7 +118,11 @@ export function AdvertForm({
       <form onSubmit={handleSubmit} className="space-y-6">
         {advertId && <input type="hidden" name="advert_id" value={advertId} />}
 
-        <MediaUploader defaultUrls={defaultValues.mediaUrls} error={mediaError} />
+        <MediaUploader
+          defaultUrls={defaultValues.mediaUrls}
+          defaultFocalPoints={defaultValues.mediaFocalPoints}
+          error={mediaError}
+        />
 
         {/* Server error banner */}
         {serverError && (
@@ -164,15 +171,23 @@ export function AdvertForm({
           <label htmlFor="location" className="block text-sm font-semibold text-foreground mb-1.5">
             Location *
           </label>
-          <input
+          <select
             id="location"
             name="location"
-            type="text"
             required
-            placeholder="e.g. Sandton, Johannesburg"
-            defaultValue={defaultValues.location}
+            defaultValue={
+              zimbabweCities.includes(defaultValues.location as never)
+                ? defaultValues.location
+                : "Harare"
+            }
             className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          />
+          >
+            {zimbabweCities.map((city) => (
+              <option key={city} value={city}>
+                {city}
+              </option>
+            ))}
+          </select>
         </div>
 
         {/* Category */}
@@ -304,13 +319,29 @@ export function AdvertForm({
             id="expiry"
             name="expiry"
             required
-            defaultValue={defaultValues.expiry || "30"}
+            value={expiryChoice}
+            onChange={(e) => setExpiryChoice(e.target.value)}
             className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
           >
             <option value="1">1 day</option>
             <option value="7">7 days</option>
             <option value="30">30 days</option>
+            <option value="custom">Custom — I&apos;ll choose</option>
           </select>
+          {expiryChoice === "custom" && (
+            <div className="mt-3 flex items-center gap-3">
+              <input
+                type="number"
+                name="custom_expiry_days"
+                min={1}
+                max={365}
+                value={customDays}
+                onChange={(e) => setCustomDays(e.target.value)}
+                className="w-28 rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              />
+              <span className="text-sm text-muted-foreground">day(s)</span>
+            </div>
+          )}
         </div>
 
         <div className="flex items-start gap-3 rounded-xl border border-border bg-accent/30 p-4">

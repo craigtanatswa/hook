@@ -33,9 +33,17 @@ function buildInput(formData: FormData): AdvertInput | { error: string } {
   const phone = String(formData.get("phone") || "").trim();
   const whatsapp = String(formData.get("whatsapp") || "").trim();
   const email = String(formData.get("email") || "").trim() || undefined;
-  const expiryDays = parseInt(String(formData.get("expiry") || "30"), 10) || 30;
+  const expiryRaw = String(formData.get("expiry") || "30");
+  const expiryDays =
+    expiryRaw === "custom"
+      ? parseInt(String(formData.get("custom_expiry_days") || "14"), 10) || 14
+      : parseInt(expiryRaw, 10) || 30;
   const featured = formData.get("featured") === "on";
   const mediaUrls = parseMediaUrls(formData);
+  const focalPointsRaw = String(formData.get("media_focal_points") ?? "");
+  const focalPoints = focalPointsRaw
+    .split(/\r?\n/)
+    .map((s) => s.trim() || "50% 50%");
 
   if (!name || !location || !fullDescription || !phone || !whatsapp) {
     return { error: "Missing required fields" };
@@ -59,6 +67,7 @@ function buildInput(formData: FormData): AdvertInput | { error: string } {
     expiryDays,
     featured,
     mediaUrls,
+    focalPoints,
   };
 }
 
