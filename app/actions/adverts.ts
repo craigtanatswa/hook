@@ -91,6 +91,11 @@ export async function createAdvertAction(
   const input = buildInput(formData);
   if ("error" in input) return { error: input.error };
 
+  // Safety: featured cannot outlast the advert itself.
+  if (input.featured && input.featuredDays && typeof input.expiryDays === "number") {
+    input.featuredDays = Math.min(input.featuredDays, input.expiryDays);
+  }
+
   const result = await insertAdvertWithMedia(input);
   if ("error" in result) return result;
 
@@ -105,6 +110,26 @@ export async function updateAdvertAction(
 ): Promise<{ ok: true } | { error: string }> {
   const input = buildInput(formData);
   if ("error" in input) return { error: input.error };
+
+  // Safety: featured cannot outlast the advert itself.
+  // If editing and keeping expiry, we cap to the remaining days on the existing advert.
+  if (input.featured && input.featuredDays) {
+    let cap = input.expiryDays;
+    if (typeof cap !== "number") {
+      // Fetch current expiry_date from DB
+      const { createServiceClient } = await import("@/lib/supabase/server");
+      const supabase = createServiceClient();
+      const { data } = await supabase.from("adverts").select("expiry_date").eq("id", advertId).maybeSingle();
+      const untilIso = (data as { expiry_date?: string } | null)?.expiry_date;
+      if (untilIso) {
+        const ms = new Date(untilIso).getTime() - Date.now();
+        cap = Math.max(1, Math.ceil(ms / (24 * 60 * 60 * 1000)));
+      }
+    }
+    if (typeof cap === "number") {
+      input.featuredDays = Math.min(input.featuredDays, cap);
+    }
+  }
 
   const result = await updateAdvertWithMedia(advertId, input);
   if ("error" in result) return result;

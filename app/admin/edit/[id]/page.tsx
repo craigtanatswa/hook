@@ -62,6 +62,7 @@ export default async function EditAdvertPage({ params }: Props) {
             mediaFocalPoints: advert.imageFocalPoints?.join("\n"),
             featured: advert.featured ? "true" : undefined,
             featuredDays: featuredDaysDefault,
+            expiresAt: advert.expiresAt,
           }}
           submitLabel="Save changes"
         />

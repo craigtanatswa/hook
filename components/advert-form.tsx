@@ -22,6 +22,7 @@ type AdvertFormProps = {
     bodyType?: string;
     category?: string;
     expiry?: string;
+      expiresAt?: string;
     featured?: string;
     featuredDays?: string;
     mediaUrls?: string;
@@ -51,6 +52,35 @@ export function AdvertForm({
     return Number.isFinite(v) && v > 0 ? String(v) : "7";
   }, [defaultValues.featuredDays]);
   const [featuredDays, setFeaturedDays] = useState(defaultFeaturedDays);
+
+  const maxFeaturedDays = useMemo(() => {
+    // Create mode: expiryChoice is a number/custom, so we can cap featured days to that.
+    if (!isEdit) {
+      if (expiryChoice === "custom") {
+        const d = parseInt(customDays, 10);
+        return Number.isFinite(d) && d > 0 ? d : 365;
+      }
+      const d = parseInt(expiryChoice, 10);
+      return Number.isFinite(d) && d > 0 ? d : 365;
+    }
+
+    // Edit mode: if admin chooses a new duration, cap to that; if keeping, cap to remaining days.
+    if (expiryChoice === "custom") {
+      const d = parseInt(customDays, 10);
+      return Number.isFinite(d) && d > 0 ? d : 365;
+    }
+    if (expiryChoice !== "keep") {
+      const d = parseInt(expiryChoice, 10);
+      return Number.isFinite(d) && d > 0 ? d : 365;
+    }
+    if (defaultValues.expiresAt) {
+      const until = new Date(defaultValues.expiresAt);
+      const now = new Date();
+      const days = Math.ceil((until.getTime() - now.getTime()) / (24 * 60 * 60 * 1000));
+      return Math.max(1, days);
+    }
+    return 365;
+  }, [customDays, defaultValues.expiresAt, expiryChoice, isEdit]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -376,7 +406,7 @@ export function AdvertForm({
                 name="featured_days"
                 type="number"
                 min={1}
-                max={365}
+                max={maxFeaturedDays}
                 value={featuredDays}
                 onChange={(e) => setFeaturedDays(e.target.value)}
                 className="w-24 rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
