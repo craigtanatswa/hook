@@ -3,8 +3,9 @@
 import { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Pencil, Eye, Trash2, PauseCircle, Search } from "lucide-react";
+import { MapPin, Pencil, Eye, Trash2, PauseCircle, Search, Star, X } from "lucide-react";
 import { deleteAdvertAction, deactivateAdvertAction } from "@/app/actions/adverts";
+import { zimbabweCities } from "@/lib/data";
 
 function isUuid(id: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
@@ -28,17 +29,37 @@ interface Props {
 
 export function ActiveAdvertsClient({ adverts }: Props) {
   const [query, setQuery] = useState("");
+  const [featuredFilter, setFeaturedFilter] = useState<"all" | "featured" | "standard">("all");
+  const [locationFilter, setLocationFilter] = useState("");
 
   const filtered = useMemo(() => {
-    const q = query.toLowerCase().trim();
-    if (!q) return adverts;
-    return adverts.filter(
-      (a) =>
+    return adverts.filter((a) => {
+      const q = query.toLowerCase().trim();
+      const matchesSearch =
+        !q ||
         a.name.toLowerCase().includes(q) ||
         a.location.toLowerCase().includes(q) ||
-        a.category.toLowerCase().includes(q)
-    );
-  }, [adverts, query]);
+        a.category.toLowerCase().includes(q);
+
+      const matchesFeatured =
+        featuredFilter === "all" ||
+        (featuredFilter === "featured" && a.featured) ||
+        (featuredFilter === "standard" && !a.featured);
+
+      const matchesLocation =
+        !locationFilter ||
+        a.location.toLowerCase().includes(locationFilter.toLowerCase());
+
+      return matchesSearch && matchesFeatured && matchesLocation;
+    });
+  }, [adverts, query, featuredFilter, locationFilter]);
+
+  const hasFilters = query || featuredFilter !== "all" || locationFilter;
+  const clearAll = () => {
+    setQuery("");
+    setFeaturedFilter("all");
+    setLocationFilter("");
+  };
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -58,16 +79,63 @@ export function ActiveAdvertsClient({ adverts }: Props) {
         </Link>
       </div>
 
-      {/* Search */}
-      <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-        <input
-          type="search"
-          placeholder="Search by name, location or category…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-        />
+      {/* Search + Filters */}
+      <div className="space-y-3 mb-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
+          <input
+            type="search"
+            placeholder="Search by name, location or category…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Featured filter */}
+          <div className="flex items-center gap-1.5">
+            <Star className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <select
+              value={featuredFilter}
+              onChange={(e) => setFeaturedFilter(e.target.value as "all" | "featured" | "standard")}
+              className="rounded-lg border border-input bg-background px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="all">All listings</option>
+              <option value="featured">Featured only</option>
+              <option value="standard">Standard only</option>
+            </select>
+          </div>
+
+          {/* Location filter */}
+          <div className="flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+            <select
+              value={locationFilter}
+              onChange={(e) => setLocationFilter(e.target.value)}
+              className="rounded-lg border border-input bg-background px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <option value="">All cities</option>
+              {zimbabweCities.map((city) => (
+                <option key={city} value={city}>
+                  {city}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Clear all */}
+          {hasFilters && (
+            <button
+              type="button"
+              onClick={clearAll}
+              className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
+            >
+              <X className="h-3 w-3" />
+              Clear filters
+            </button>
+          )}
+        </div>
       </div>
 
       {filtered.length > 0 ? (
@@ -168,15 +236,20 @@ export function ActiveAdvertsClient({ adverts }: Props) {
         </div>
       ) : (
         <div className="text-center py-16 bg-muted rounded-2xl border border-border">
-          {query ? (
+          {hasFilters ? (
             <>
-              <p className="text-4xl mb-3">🔍</p>
-              <p className="font-semibold text-foreground">No results for "{query}"</p>
-              <p className="text-sm text-muted-foreground mt-1">Try a different name, location or category.</p>
+              <p className="font-semibold text-foreground">No results match your filters</p>
+              <p className="text-sm text-muted-foreground mt-1 mb-4">Try widening your search or clearing filters.</p>
+              <button
+                type="button"
+                onClick={clearAll}
+                className="inline-flex px-4 py-2.5 rounded-lg bg-primary text-primary-foreground text-sm font-semibold hover:opacity-90 transition-opacity"
+              >
+                Clear all filters
+              </button>
             </>
           ) : (
             <>
-              <p className="text-4xl mb-3">📭</p>
               <p className="font-semibold text-foreground">No live listings yet</p>
               <p className="text-sm text-muted-foreground mt-1 mb-4">
                 Publish the first profile to get started.
