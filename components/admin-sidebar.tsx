@@ -50,7 +50,7 @@ export function AdminSidebar({ userEmail, role }: Props) {
       : baseNavItems;
 
   const SidebarContent = () => (
-    <nav className="flex flex-col h-full">
+    <nav className="flex flex-col">
       {/* Logo */}
       <div className="px-6 py-6 border-b border-sidebar-border">
         <Link href="/" className="inline-flex items-center gap-2">
@@ -62,7 +62,7 @@ export function AdminSidebar({ userEmail, role }: Props) {
       </div>
 
       {/* Nav items */}
-      <ul className="flex-1 py-4 px-3 space-y-1" role="list">
+      <ul className="py-4 px-3 space-y-1" role="list">
         {navItems.map(({ href, label, icon: Icon }) => {
           const isActive = pathname === href;
           return (
