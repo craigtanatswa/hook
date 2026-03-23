@@ -30,7 +30,6 @@ export default function HomePage() {
 
   const [search, setSearch] = useState("");
   const [location, setLocation] = useState("");
-  const [category, setCategory] = useState("All");
   const [gender, setGender] = useState("All");
   const [bodyType, setBodyType] = useState("All");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -44,14 +43,12 @@ export default function HomePage() {
     const matchSearch =
       !search ||
       a.name.toLowerCase().includes(search.toLowerCase()) ||
-      a.shortDescription.toLowerCase().includes(search.toLowerCase()) ||
-      a.category.toLowerCase().includes(search.toLowerCase());
+      a.shortDescription.toLowerCase().includes(search.toLowerCase());
     const matchLocation =
       !location || a.location.toLowerCase().includes(location.toLowerCase());
-    const matchCategory = category === "All" || a.category === category;
     const matchGender = gender === "All" || a.gender === gender;
     const matchBodyType = bodyType === "All" || a.bodyType === bodyType;
-    return matchSearch && matchLocation && matchCategory && matchGender && matchBodyType;
+    return matchSearch && matchLocation && matchGender && matchBodyType;
   });
 
   const totalPages = Math.ceil(filtered.length / ADVERTS_PER_PAGE);
@@ -60,7 +57,7 @@ export default function HomePage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, location, category, gender, bodyType]);
+  }, [search, location, gender, bodyType]);
 
   const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) {
@@ -72,16 +69,15 @@ export default function HomePage() {
   const clearAllFilters = () => {
     setSearch("");
     setLocation("");
-    setCategory("All");
     setGender("All");
     setBodyType("All");
   };
 
   const noExtraFilters =
-    !search && !location.trim() && category === "All" && gender === "All" && bodyType === "All";
+    !search && !location.trim() && gender === "All" && bodyType === "All";
 
   const filterActive =
-    Boolean(location.trim()) || category !== "All" || gender !== "All" || bodyType !== "All";
+    Boolean(location.trim()) || gender !== "All" || bodyType !== "All";
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -98,7 +94,7 @@ export default function HomePage() {
               type="search"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, vibe, or area..."
+              placeholder="Search by name, fantasy, or area…"
               className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-input bg-muted focus:outline-none focus:ring-2 focus:ring-ring focus:bg-background transition-colors"
             />
           </div>
@@ -122,11 +118,6 @@ export default function HomePage() {
               <FilterPanel
                 location={location}
                 onLocationChange={setLocation}
-                category={category}
-                onCategoryChange={(c) => {
-                  setCategory(c);
-                  setMobileFiltersOpen(false);
-                }}
                 gender={gender}
                 onGenderChange={setGender}
                 bodyType={bodyType}
@@ -167,8 +158,6 @@ export default function HomePage() {
             <FilterPanel
               location={location}
               onLocationChange={setLocation}
-              category={category}
-              onCategoryChange={setCategory}
               gender={gender}
               onGenderChange={setGender}
               bodyType={bodyType}
@@ -183,12 +172,13 @@ export default function HomePage() {
         <main className="flex-1 min-w-0 px-4 py-6 lg:px-8 max-w-2xl mx-auto w-full">
           <div className="mb-8">
             <h1 className="text-3xl sm:text-4xl font-black text-foreground text-balance leading-tight">
-              Someone sexy, on your sofa, tonight
+              Someone sexy, in your sheets, tonight
             </h1>
             <p className="text-sm sm:text-base text-muted-foreground mt-3 leading-relaxed">
-              Hook is where consent-first cuddlers come to you—slow spooning, movie-night tangled legs, or deep rest with
-              arms that don&apos;t quit. Pick a profile that makes your stomach flip, then message. No middleman, just heat
-              (the cozy kind).
+              Why settle for a dream when you can invite it over? Hook is the portal between your deepest desires and your
+              front door. Browse explicit, unfiltered profiles that blur the line between art and ecstasy. From whispered
+              secrets to full-service nights that never end, just two consenting souls and the beautiful, sexy moments you
+              create together. Pure magic, no strings.
             </p>
           </div>
 
@@ -217,14 +207,14 @@ export default function HomePage() {
             <>
               {featuredAdverts.length > 0 && currentPage === 1 && noExtraFilters && (
                 <div className="mb-8">
-                  <h2 className="text-lg font-bold text-foreground mb-3">Tonight&apos;s crush</h2>
+                  <h2 className="text-lg font-bold text-foreground mb-3">Tonight&apos;s obsession</h2>
                   <FeaturedAdvertsSection adverts={featuredAdverts} />
                 </div>
               )}
 
               {featuredAdverts.length > 0 && !noExtraFilters && filtered.some((a) => a.featured) && (
                 <div className="mb-6">
-                  <h2 className="text-lg font-bold text-foreground mb-3">Still turning heads in your search</h2>
+                  <h2 className="text-lg font-bold text-foreground mb-3">Still dripping in your search</h2>
                   <FeaturedAdvertsSection adverts={filtered.filter((a) => a.featured)} />
                 </div>
               )}
@@ -243,7 +233,7 @@ export default function HomePage() {
                   </button>
 
                   <p className="text-xs text-muted-foreground font-medium">
-                    {filtered.length} {filtered.length === 1 ? "cuddler" : "cuddlers"} — Page {currentPage} of {totalPages}
+                    {filtered.length} {filtered.length === 1 ? "escort" : "escorts"} — Page {currentPage} of {totalPages}
                   </p>
 
                   <button
@@ -292,9 +282,9 @@ export default function HomePage() {
           {/* Loaded — filters return nothing */}
           {allAdverts !== null && allAdverts.length > 0 && filtered.length === 0 && (
             <div className="text-center py-20">
-              <p className="font-semibold text-foreground text-xl">Nobody matching that vibe (yet)</p>
+              <p className="font-semibold text-foreground text-xl">Nobody matching that fantasy (yet)</p>
               <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">
-                Widen your filters — there&apos;s always another pair of arms loading.
+                Loosen your filters — someone new is always about to post.
               </p>
               <button
                 type="button"
@@ -311,7 +301,7 @@ export default function HomePage() {
             <div className="text-center py-20">
               <p className="font-semibold text-foreground text-xl">No listings live yet</p>
               <p className="text-sm text-muted-foreground mt-2 max-w-xs mx-auto">
-                Check back soon — cuddlers are on their way.
+                Check back soon — escorts are loading onto the feed.
               </p>
             </div>
           )}

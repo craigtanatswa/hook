@@ -31,7 +31,7 @@ export function FeaturedAdvertsSection({ adverts }: FeaturedAdvertsSectionProps)
           {/* Main featured image */}
           <Image
             src={current.images[0] || current.profileImage}
-            alt={`${current.name} — tonight’s pick`}
+            alt={`${current.name} — featured tonight`}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-300"
             priority
@@ -50,8 +50,6 @@ export function FeaturedAdvertsSection({ adverts }: FeaturedAdvertsSectionProps)
             <div className="flex items-center gap-2 text-white text-sm mb-3 drop-shadow-sm">
               <MapPin className="h-4 w-4" />
               <span>{current.location}</span>
-              <span className="text-white/70">•</span>
-              <span>{current.category}</span>
             </div>
             <p className="text-white/95 text-xs sm:text-sm line-clamp-2 mb-3 drop-shadow-sm">
               {current.shortDescription}

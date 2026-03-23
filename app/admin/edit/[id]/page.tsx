@@ -53,7 +53,6 @@ export default async function EditAdvertPage({ params }: Props) {
             location: advert.location,
             gender: advert.gender,
             bodyType: advert.bodyType,
-            category: advert.category,
             phone: advert.phone,
             whatsapp: advert.whatsapp,
             email: advert.email,

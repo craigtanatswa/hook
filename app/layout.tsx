@@ -3,15 +3,16 @@ import { Geist, Geist_Mono } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import { ThemeProvider } from '@/components/theme-provider'
 import { AgeGate } from '@/components/age-gate'
+import { ADULT_CONTENT_DISCLAIMER } from '@/lib/adult-disclaimer'
 import './globals.css'
 
 const _geist = Geist({ subsets: ["latin"] });
 const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'Hook — Cuddles at yours',
+  title: 'Hook — Escorts at yours',
   description:
-    'Gorgeous humans who travel to you for platonic, consent-first cuddle sessions. Browse, vibe-check the photos, then WhatsApp or call—your couch never had it this good.',
+    'Independent escorts and companions who come to you—browse explicit listings, pick your fantasy, then call or WhatsApp. Private adults-only bookings.',
   generator: 'v0.app',
   icons: {
     icon: [
@@ -43,6 +44,11 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="light">
           <AgeGate />
           {children}
+          <footer className="border-t border-border bg-muted/20 px-4 py-8 lg:px-8 shrink-0">
+            <p className="text-[11px] sm:text-xs leading-relaxed text-muted-foreground max-w-3xl mx-auto text-center">
+              {ADULT_CONTENT_DISCLAIMER}
+            </p>
+          </footer>
         </ThemeProvider>
         <Analytics />
       </body>

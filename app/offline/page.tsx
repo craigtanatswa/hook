@@ -11,7 +11,7 @@ export default function OfflinePage() {
         <div className="space-y-2">
           <h1 className="text-3xl font-black text-foreground tracking-tight">Hook is offline</h1>
           <p className="text-sm text-muted-foreground leading-relaxed">
-            We&apos;re performing some maintenance. Sit tight — the cozy vibes will be back shortly.
+            We&apos;re performing some maintenance. Sit tight — the heat will be back shortly.
           </p>
         </div>
       </div>

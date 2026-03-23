@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { genders, bodyTypes, categories, zimbabweCities } from "@/lib/data";
+import { genders, bodyTypes, zimbabweCities } from "@/lib/data";
 import { MediaUploader } from "@/components/media-uploader";
 import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
@@ -20,7 +20,6 @@ type AdvertFormProps = {
     description?: string;
     gender?: string;
     bodyType?: string;
-    category?: string;
     expiry?: string;
       expiresAt?: string;
     featured?: string;
@@ -227,26 +226,6 @@ export function AdvertForm({
           </select>
         </div>
 
-        {/* Category */}
-        <div>
-          <label htmlFor="category" className="block text-sm font-semibold text-foreground mb-1.5">
-            Vibe / category *
-          </label>
-          <select
-            id="category"
-            name="category"
-            required
-            defaultValue={defaultValues.category || "Soft & slow"}
-            className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            {categories.filter((c) => c !== "All").map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-        </div>
-
         {/* Gender & body type */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
@@ -342,7 +321,7 @@ export function AdvertForm({
             name="description"
             required
             rows={5}
-            placeholder="Sell the vibe—boundaries, areas, availability..."
+            placeholder="Sell the fantasy—services, limits, areas, rates mindset..."
             defaultValue={defaultValues.description}
             className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring resize-none"
           />

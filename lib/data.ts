@@ -9,7 +9,6 @@ export type Advert = {
   gender: string;
   /** Fit | Thick | Average | Slender */
   bodyType: BodyType;
-  category: string;
   shortDescription: string;
   fullDescription: string;
   phone: string;
@@ -35,11 +34,10 @@ export const adverts: Advert[] = [
     location: "Sandton, Johannesburg",
     gender: "Female",
     bodyType: "Average",
-    category: "Soft & slow",
     shortDescription:
-      "Warm hands, slow breaths, and nowhere to be. I come to you—blankets, mood lighting, and cuddles that melt the week away.",
+      "Soft kisses down your neck, hands that linger, and no clock on the bed. I come to you—your sheets, your rules, my mouth where you want it.",
     fullDescription:
-      "Hey love. I’m Sarah, and I specialise in the kind of cuddles that make you forget your phone exists. I travel to your place with soft throws, optional essential oils, and zero rush. Think spooning, head-on-chest, lazy strokes through your hair—always consent-first, always platonic, always deliciously present. Evenings and weekends work best. Sandton and surrounds. Message me and tell me what kind of tired you are—I’ll match the vibe.",
+      "Hey love. I’m Sarah, and I show up to fuck you properly: slow at first, filthy by the end. I travel to your place with lingerie under my coat, toys if you ask, and zero shame. Oral, riding, eye contact that doesn’t look away—everything we agree on, nothing off the table you didn’t ask for. Evenings and weekends. Sandton and surrounds. Tell me how you like to come and I’ll build the night around it.",
     phone: "+27 82 123 4567",
     whatsapp: "27821234567",
     email: "sarah.dlamini@email.com",
@@ -57,11 +55,10 @@ export const adverts: Advert[] = [
     location: "Randburg, Johannesburg",
     gender: "Male",
     bodyType: "Fit",
-    category: "Big spoon energy",
     shortDescription:
-      "Tall, calm, and built for wrapping around you. Home visits—movie optional, holding you non-negotiable.",
+      "Built to pin you down, split you open, and make you beg before I let you finish. Outcalls—your bed, my tempo.",
     fullDescription:
-      "I’m Mike. If you crave weight, warmth, and someone who can actually hold space without making it weird—I’m your guy. I do in-home cuddle sessions: couch, bed, floor nest—whatever feels safe and good for you. Firm hugs, gentle rocking, the kind of silence that feels full. Boundaries are sacred; we agree everything upfront. Randburg, Roodepoort, Northgate. Evenings after 6 or Sunday afternoons. WhatsApp me a 🧡 and your area.",
+      "I’m Mike. If you want someone who takes charge—hair in a fist, dirty talk, stamina that outlasts you—I’m your guy. I do full-service outcalls: oral, penetration, positions until you’re shaking. Hard or slow, but always explicit. We negotiate limits and safe words upfront. Randburg, Roodepoort, Northgate. Evenings after 6 or Sunday afternoons. WhatsApp me a 🔥 and your area.",
     phone: "+27 83 234 5678",
     whatsapp: "27832345678",
     email: "mike.nkosi@email.com",
@@ -78,11 +75,10 @@ export const adverts: Advert[] = [
     location: "Fourways, Johannesburg",
     gender: "Female",
     bodyType: "Slender",
-    category: "Movie night",
     shortDescription:
-      "Popcorn, your sofa, and me tucked into your side. Flirty-safe cuddles while the credits roll.",
+      "Netflix stays on mute—we’re too busy with hands under clothes, grinding, and me finishing what the opening credits started.",
     fullDescription:
-      "Lerato here—I turn your living room into the cosiest date-with-yourself you’ve ever had. I bring the vibe: soft hoodie optional, playlists if you want them, and arms that don’t get tired halfway through the film. Strictly platonic, seriously sensual in the sense of *present*—no expectations, just contact that feels like honey. Fourways, Douglasdale, Lonehill. Flexible hours; late nights are my favourite. Slide into my DMs with your postcode.",
+      "Lerato here. I turn your couch into foreplay: straddling, teasing, then the bedroom when you can’t wait. Girlfriend-style energy with porn-star honesty—I love giving head, being ridden, and hearing what gets you there. Fourways, Douglasdale, Lonehill. Late nights are my favourite. Message your postcode and what you want between the sheets.",
     phone: "+27 84 345 6789",
     whatsapp: "27843456789",
     images: ["/images/provider-3.png", "/images/provider-1.png"],
@@ -98,11 +94,10 @@ export const adverts: Advert[] = [
     location: "Midrand, Johannesburg",
     gender: "Male",
     bodyType: "Average",
-    category: "Deep rest",
     shortDescription:
-      "For when you’re burnt out and need someone to simply *be there*—breath synced, lights low, world off.",
+      "Full-body oil, edging, and release when you’re dripping—tantric pace with a filthy payoff.",
     fullDescription:
-      "David. I do cuddle sessions for people who are done performing. You lie down, I adjust until you’re comfortable, and we let the nervous system downshift. No small talk required—though I’m great at it if you want. Midrand, Centurion, Halfway House. I’m punctual, scent-light, and trained in reading body language so we never cross a line you didn’t draw. Book via WhatsApp; say ‘rest’ and I’ll send availability.",
+      "David. I do sensual massage that turns into whatever we negotiate: body slides, prostate if you’re curious, oral finish or full sex—your call. Midrand, Centurion, Halfway House. I’m punctual, discreet, and obsessed with consent while we get obscene. Book via WhatsApp; say ‘touch’ and I’ll send rates and availability.",
     phone: "+27 85 456 7890",
     whatsapp: "27854567890",
     email: "david.sithole@email.com",
@@ -119,11 +114,10 @@ export const adverts: Advert[] = [
     location: "Soweto, Johannesburg",
     gender: "Female",
     bodyType: "Thick",
-    category: "Playful energy",
     shortDescription:
-      "Laughs between cuddles, tickles if you’re into it, then back to slow—sparkly energy, soft landing.",
+      "Laughing one minute, riding you the next—oral, toys, and stamina that matches your filthy mouth.",
     fullDescription:
-      "Nomsa 💋 I’m the one if you want cuddles that don’t feel like a funeral. A little teasing, a lot of warmth, always respectful. I come to you; we set the rules together. Soweto, Eldos, Lenasia. Afternoons or early evenings. I’m flirty in the way sunshine is—bright, not demanding. Message me with ‘cuddle’ and what kind of day you’ve had.",
+      "Nomsa 💋 I’m the one if you want fun that ends with both of us breathless. Teasing strip, sloppy head, then rounds until we’re spent—always consensual, always explicit. I come to you; we set limits together. Soweto, Eldos, Lenasia. Afternoons or early evenings. Message me with ‘tonight’ and how hard you want to go.",
     phone: "+27 86 567 8901",
     whatsapp: "27865678901",
     email: "nomsa.khumalo@email.com",
@@ -140,11 +134,10 @@ export const adverts: Advert[] = [
     location: "Pretoria East",
     gender: "Male",
     bodyType: "Fit",
-    category: "Overnight vibe",
     shortDescription:
-      "Long-form holding—for insomniacs and cuddle addicts. We negotiate hours; your place, your pace.",
+      "Overnight stays—multiple rounds, shower breaks, and breakfast eyes when we’re finally done.",
     fullDescription:
-      "Thabo. Some people need more than an hour to unclench. I offer extended in-home sessions: same rules as always—consent, platonic, no surprises. Pretoria East, Faerie Glen, Moreleta. If you’ve been starved of touch, we go slow until your body believes it’s safe. WhatsApp only; tell me ‘overnight’ or ‘long session’ and I’ll reply with boundaries sheet + rates mindset (we keep it simple).",
+      "Thabo. Some hunger doesn’t fit in an hour. I offer extended outcall nights: sex, sleep, repeat—everything negotiated upfront, condoms non-negotiable unless we’ve agreed otherwise with proof. Pretoria East, Faerie Glen, Moreleta. WhatsApp only; say ‘overnight’ and I’ll send rates and what I’m into.",
     phone: "+27 87 678 9012",
     whatsapp: "27876789012",
     images: ["/images/provider-2.png", "/images/provider-5.png"],
@@ -160,11 +153,10 @@ export const adverts: Advert[] = [
     location: "Cape Town CBD",
     gender: "Female",
     bodyType: "Thick",
-    category: "Soft & slow",
     shortDescription:
-      "Slow cuddles, sea-air optional, you horizontal—CBD & Atlantic Seaboard when I’m back live.",
+      "Slow head, slower strokes, sea air on the balcony between rounds—CBD when I’m back live.",
     fullDescription:
-      "Zanele. Cape Town CBD, Sea Point, Green Point. I had a run of back-to-back bookings and my listing lapsed—reposting soon. Same vibe: slow, intentional, ridiculously cosy. Hit me up when I’m live again.",
+      "Zanele. Cape Town CBD, Sea Point, Green Point. Listing lapsed during a busy run—reposting soon. Same vibe: unhurried, explicit, worth the wait. Hit me when I’m live again.",
     phone: "+27 82 789 0123",
     whatsapp: "27827890123",
     email: "zanele.zulu@email.com",
@@ -181,11 +173,10 @@ export const adverts: Advert[] = [
     location: "Durban North",
     gender: "Male",
     bodyType: "Average",
-    category: "Big spoon energy",
     shortDescription:
-      "Seasoned holder—steady arms, dad jokes optional. Durban North & surrounds; expired listing, back soon.",
+      "Seasoned, dominant energy—Durban North & surrounds; expired listing, back soon.",
     fullDescription:
-      "Sipho. Twenty years of making people feel held—literally. Listing expired but I’ll be back on Hook shortly. Durban North, Umhlanga. Save my number if you like the vibe.",
+      "Sipho. Twenty years of leaving clients wrecked in the best way. Listing expired but I’ll be back on Hook shortly. Durban North, Umhlanga. Save my number if you like it rough and respectful.",
     phone: "+27 83 890 1234",
     whatsapp: "27838901234",
     images: ["/images/provider-3.png", "/images/provider-5.png"],
@@ -214,15 +205,10 @@ export const getAdvertById = (id: string) => adverts.find((a) => a.id === id);
 
 export const getFeaturedAdverts = () => getActiveAdverts().filter((a) => a.featured);
 
-export const getSuggestedAdverts = (
-  excludeId: string,
-  sameCategory: string,
-  limit = 6
-): Advert[] => {
-  const active = getActiveAdverts().filter((a) => a.id !== excludeId);
-  const sameCat = active.filter((a) => a.category === sameCategory);
-  const otherCat = active.filter((a) => a.category !== sameCategory);
-  return [...sameCat, ...otherCat].slice(0, limit);
+export const getSuggestedAdverts = (excludeId: string, limit = 6): Advert[] => {
+  return getActiveAdverts()
+    .filter((a) => a.id !== excludeId)
+    .slice(0, limit);
 };
 
 export const zimbabweCities = [
@@ -253,16 +239,6 @@ export const zimbabweCities = [
 ] as const;
 
 export type ZimbabweCity = (typeof zimbabweCities)[number];
-
-export const categories = [
-  "All",
-  "Soft & slow",
-  "Big spoon energy",
-  "Movie night",
-  "Deep rest",
-  "Playful energy",
-  "Overnight vibe",
-];
 
 export const genders = ["All", "Female", "Male"] as const;
 

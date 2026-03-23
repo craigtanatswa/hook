@@ -15,7 +15,6 @@ interface Advert {
   id: string;
   name: string;
   location: string;
-  category: string;
   expiresAt: string;
   images: string[];
   profileImage: string;
@@ -34,8 +33,7 @@ export function ExpiredAdvertsClient({ adverts }: Props) {
     return adverts.filter(
       (a) =>
         a.name.toLowerCase().includes(q) ||
-        a.location.toLowerCase().includes(q) ||
-        a.category.toLowerCase().includes(q)
+        a.location.toLowerCase().includes(q)
     );
   }, [adverts, query]);
 
@@ -54,7 +52,7 @@ export function ExpiredAdvertsClient({ adverts }: Props) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <input
             type="search"
-            placeholder="Search by name, location or category…"
+            placeholder="Search by name or location…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -68,7 +66,7 @@ export function ExpiredAdvertsClient({ adverts }: Props) {
             <>
               <p className="font-semibold text-foreground">No results for "{query}"</p>
               <p className="text-sm text-muted-foreground mt-1">
-                Try a different name, location or category.
+                Try a different name or location.
               </p>
             </>
           ) : (
@@ -114,9 +112,7 @@ export function ExpiredAdvertsClient({ adverts }: Props) {
                       <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
                       <p className="text-xs text-muted-foreground truncate">{advert.location}</p>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {advert.category} · Expired {expiredDate}
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Expired {expiredDate}</p>
                   </div>
 
                   {uuid ? (

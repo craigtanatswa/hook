@@ -8,7 +8,6 @@ type AdvertRow = {
   location: string;
   gender: string;
   body_type: string;
-  category: string;
   short_description: string;
   full_description: string;
   phone: string;
@@ -81,7 +80,6 @@ function rowToAdvert(
     location: row.location,
     gender: row.gender,
     bodyType: row.body_type as BodyType,
-    category: row.category,
     shortDescription: row.short_description,
     fullDescription: row.full_description,
     phone: row.phone,
@@ -229,7 +227,6 @@ export type AdvertInput = {
   location: string;
   gender: string;
   bodyType: string;
-  category: string;
   shortDescription: string;
   fullDescription: string;
   phone: string;
@@ -264,7 +261,6 @@ export async function insertAdvertWithMedia(input: AdvertInput): Promise<{ id: s
         location: input.location,
         gender: input.gender,
         body_type: input.bodyType,
-        category: input.category,
         short_description: input.shortDescription.slice(0, 500),
         full_description: input.fullDescription,
         phone: input.phone,
@@ -318,7 +314,6 @@ export async function updateAdvertWithMedia(
       location: input.location,
       gender: input.gender,
       body_type: input.bodyType,
-      category: input.category,
       short_description: input.shortDescription.slice(0, 500),
       full_description: input.fullDescription,
       phone: input.phone,
@@ -426,12 +421,14 @@ export async function repostAdvert(
 ): Promise<{ ok: true } | { error: string }> {
   try {
     const supabase = createServiceClient();
+    const now = new Date().toISOString();
     const { error } = await supabase
       .from("adverts")
       .update({
         status: "active",
         expiry_date: expiryDateFromDays(days),
-        updated_at: new Date().toISOString(),
+        created_at: now,
+        updated_at: now,
       })
       .eq("id", id);
     if (error) return { error: error.message };

@@ -15,7 +15,6 @@ interface Advert {
   id: string;
   name: string;
   location: string;
-  category: string;
   expiresAt: string;
   images: string[];
   profileImage: string;
@@ -38,8 +37,7 @@ export function ActiveAdvertsClient({ adverts }: Props) {
       const matchesSearch =
         !q ||
         a.name.toLowerCase().includes(q) ||
-        a.location.toLowerCase().includes(q) ||
-        a.category.toLowerCase().includes(q);
+        a.location.toLowerCase().includes(q);
 
       const matchesFeatured =
         featuredFilter === "all" ||
@@ -68,7 +66,7 @@ export function ActiveAdvertsClient({ adverts }: Props) {
           <h1 className="text-2xl font-black text-foreground">Live profiles</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {filtered.length} of {adverts.length}{" "}
-            {adverts.length === 1 ? "cuddler" : "cuddlers"} shown
+            {adverts.length === 1 ? "escort" : "escorts"} shown
           </p>
         </div>
         <Link
@@ -85,7 +83,7 @@ export function ActiveAdvertsClient({ adverts }: Props) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
           <input
             type="search"
-            placeholder="Search by name, location or category…"
+            placeholder="Search by name or location…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-input bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -179,9 +177,7 @@ export function ActiveAdvertsClient({ adverts }: Props) {
                       <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
                       <p className="text-xs text-muted-foreground truncate">{advert.location}</p>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      {advert.category} · Exp. {expires}
-                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">Exp. {expires}</p>
                   </div>
 
                   <div className="flex flex-wrap gap-2 mt-auto">

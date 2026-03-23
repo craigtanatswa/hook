@@ -45,7 +45,7 @@ export function SettingsClient({ maintenanceMode }: Props) {
       <div className="mb-8">
         <h1 className="text-2xl font-black text-foreground">Settings</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Tune Hook before the cuddlers break the internet
+          Tune Hook before the escorts melt the servers
         </p>
       </div>
 

@@ -1,7 +1,6 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import {
   insertAdvertWithMedia,
   updateAdvertWithMedia,
@@ -29,7 +28,6 @@ function buildInput(formData: FormData): AdvertInput | { error: string } {
   const location = String(formData.get("location") || "").trim();
   const gender = String(formData.get("gender") || "Female");
   const bodyType = String(formData.get("bodyType") || "Average");
-  const category = String(formData.get("category") || "Soft & slow").trim();
   const fullDescription = String(formData.get("description") || "").trim();
   const phone = String(formData.get("phone") || "").trim();
   const whatsapp = String(formData.get("whatsapp") || "").trim();
@@ -71,7 +69,6 @@ function buildInput(formData: FormData): AdvertInput | { error: string } {
     location,
     gender,
     bodyType,
-    category,
     shortDescription: fullDescription.slice(0, 280),
     fullDescription,
     phone,
@@ -158,12 +155,15 @@ export async function deactivateAdvertAction(advertId: string) {
   return { ok: true };
 }
 
-export async function repostAdvertAction(advertId: string, formData: FormData) {
+export async function repostAdvertAction(
+  advertId: string,
+  formData: FormData
+): Promise<{ ok: true } | { error: string }> {
   const days = parseInt(String(formData.get("days") || "30"), 10) || 30;
   const result = await repostAdvert(advertId, days);
   if ("error" in result) return result;
   revalidatePath("/");
   revalidatePath("/admin/active");
   revalidatePath("/admin/expired");
-  redirect("/admin/active");
+  return { ok: true };
 }

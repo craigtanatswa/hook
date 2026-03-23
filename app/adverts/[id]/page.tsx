@@ -12,11 +12,8 @@ type Props = {
   params: Promise<{ id: string }>;
 };
 
-function suggestedFromList(all: Advert[], excludeId: string, category: string, limit: number) {
-  const active = all.filter((a) => a.id !== excludeId && a.status === "active");
-  const same = active.filter((a) => a.category === category);
-  const rest = active.filter((a) => a.category !== category);
-  return [...same, ...rest].slice(0, limit);
+function suggestedFromList(all: Advert[], excludeId: string, limit: number) {
+  return all.filter((a) => a.id !== excludeId && a.status === "active").slice(0, limit);
 }
 
 export default async function AdvertDetailPage({ params }: Props) {
@@ -26,7 +23,7 @@ export default async function AdvertDetailPage({ params }: Props) {
   if (!advert) notFound();
 
   const allActive = await fetchActiveAdvertsWithMedia();
-  const suggested = suggestedFromList(allActive, advert.id, advert.category, 6);
+  const suggested = suggestedFromList(allActive, advert.id, 6);
 
   const postedDate = new Date(advert.postedAt).toLocaleDateString("en-ZA", {
     day: "numeric",
@@ -56,25 +53,20 @@ export default async function AdvertDetailPage({ params }: Props) {
         </div>
 
         <section className="mb-6">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-3xl font-black text-foreground text-balance leading-tight">{advert.name}</h1>
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
-                <span className="text-sm text-muted-foreground font-medium">Age {advert.age}</span>
-                <span className="text-muted-foreground text-xs">•</span>
-                <span className="text-sm text-muted-foreground">{advert.gender}</span>
-                <span className="text-muted-foreground text-xs">•</span>
-                <span className="text-sm font-semibold text-foreground">{advert.bodyType}</span>
-                <span className="text-muted-foreground text-xs">•</span>
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4 text-primary shrink-0" />
-                  <span>{advert.location}</span>
-                </div>
+          <div className="min-w-0">
+            <h1 className="text-3xl font-black text-foreground text-balance leading-tight">{advert.name}</h1>
+            <div className="flex items-center gap-2 mt-2 flex-wrap">
+              <span className="text-sm text-muted-foreground font-medium">Age {advert.age}</span>
+              <span className="text-muted-foreground text-xs">•</span>
+              <span className="text-sm text-muted-foreground">{advert.gender}</span>
+              <span className="text-muted-foreground text-xs">•</span>
+              <span className="text-sm font-semibold text-foreground">{advert.bodyType}</span>
+              <span className="text-muted-foreground text-xs">•</span>
+              <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                <MapPin className="h-4 w-4 text-primary shrink-0" />
+                <span>{advert.location}</span>
               </div>
             </div>
-            <span className="shrink-0 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold">
-              {advert.category}
-            </span>
           </div>
 
           <div className="flex items-center gap-1.5 mt-4 text-xs text-muted-foreground">
@@ -85,7 +77,7 @@ export default async function AdvertDetailPage({ params }: Props) {
           <div className="flex flex-wrap items-center gap-2 mt-4">
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-primary/10 text-primary text-xs font-semibold">
               <BadgeCheck className="h-3.5 w-3.5" />
-              Verified cuddler
+              Verified escort
             </span>
             <span className="px-2.5 py-1 rounded-lg bg-muted text-muted-foreground text-xs font-medium">
               Recently active
@@ -101,18 +93,18 @@ export default async function AdvertDetailPage({ params }: Props) {
           />
         </section>
 
-        <section aria-label="Cuddle style and boundaries" className="mb-6">
-          <h2 className="text-lg font-bold text-foreground mb-3">How they hold you</h2>
+        <section aria-label="Services and boundaries" className="mb-6">
+          <h2 className="text-lg font-bold text-foreground mb-3">What they offer</h2>
           <p className="text-sm text-muted-foreground leading-relaxed whitespace-pre-line">
             {advert.fullDescription}
           </p>
         </section>
 
         {suggested.length > 0 && (
-          <section aria-label="Other cuddlers you might like" className="mb-8">
-            <h2 className="text-lg font-bold text-foreground mb-1">More arms you&apos;ll want around you</h2>
+          <section aria-label="Other escorts you might like" className="mb-8">
+            <h2 className="text-lg font-bold text-foreground mb-1">More bodies you&apos;ll want tonight</h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Same vibe ({advert.category}) first—then others worth a scroll.
+              More listings worth your attention—same heat, different bodies.
             </p>
             <div className="flex flex-col gap-5">
               {suggested.map((a) => (
@@ -122,8 +114,8 @@ export default async function AdvertDetailPage({ params }: Props) {
           </section>
         )}
 
-        <section aria-label="Book or message cuddler" className="hidden sm:block">
-          <h2 className="text-lg font-bold text-foreground mb-4">Make it happen</h2>
+        <section aria-label="Book or message escort" className="hidden sm:block">
+          <h2 className="text-lg font-bold text-foreground mb-4">Book the night</h2>
           <ContactButtons
             phone={advert.phone}
             whatsapp={advert.whatsapp}

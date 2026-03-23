@@ -61,7 +61,7 @@ export default async function AdminDashboard() {
           >
             <span className="flex items-center gap-2.5">
               <PlusCircle className="h-5 w-5" />
-              New cuddler listing
+              New escort listing
             </span>
             <ArrowRight className="h-4 w-4" />
           </Link>
@@ -91,7 +91,7 @@ export default async function AdminDashboard() {
             <div key={advert.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
               <div className="min-w-0">
                 <p className="font-semibold text-sm text-foreground truncate">{advert.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{advert.location} · {advert.category}</p>
+                <p className="text-xs text-muted-foreground truncate">{advert.location}</p>
               </div>
               <span className="shrink-0 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
                 Active

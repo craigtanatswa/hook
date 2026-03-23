@@ -151,16 +151,12 @@ export function AdvertCard({ advert }: AdvertCardProps) {
 
       {/* Content below media */}
       <div className="p-4 sm:p-5">
-        {/* Header row: name + category badge */}
-        <div className="flex items-start justify-between gap-3 mb-2">
-          <Link href={`/adverts/${advert.id}`} className="flex-1 min-w-0">
+        <div className="mb-2">
+          <Link href={`/adverts/${advert.id}`} className="block min-w-0">
             <h2 className="font-bold text-foreground text-lg sm:text-xl leading-tight hover:text-primary transition-colors">
               {advert.name}
             </h2>
           </Link>
-          <span className="shrink-0 px-2.5 py-1 rounded-full bg-accent text-accent-foreground text-xs font-semibold border border-border">
-            {advert.category}
-          </span>
         </div>
 
         {/* Meta */}
