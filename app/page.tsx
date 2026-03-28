@@ -7,7 +7,7 @@ import { AdvertCard } from "@/components/advert-card";
 import { FeaturedAdvertsSection } from "@/components/featured-adverts-section";
 import { FilterPanel } from "@/components/filter-panel";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import type { Advert } from "@/lib/data";
+import { formatAdvertLocation, type Advert } from "@/lib/data";
 import Link from "next/link";
 
 const ADVERTS_PER_PAGE = 10;
@@ -29,7 +29,9 @@ export default function HomePage() {
   }, []);
 
   const [search, setSearch] = useState("");
-  const [location, setLocation] = useState("");
+  const [locationQuery, setLocationQuery] = useState("");
+  const [cityFilter, setCityFilter] = useState("");
+  const [suburbFilter, setSuburbFilter] = useState("");
   const [gender, setGender] = useState("All");
   const [bodyType, setBodyType] = useState("All");
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
@@ -44,11 +46,18 @@ export default function HomePage() {
       !search ||
       a.name.toLowerCase().includes(search.toLowerCase()) ||
       a.shortDescription.toLowerCase().includes(search.toLowerCase());
-    const matchLocation =
-      !location || a.location.toLowerCase().includes(location.toLowerCase());
+    const q = locationQuery.trim().toLowerCase();
+    const formatted = formatAdvertLocation(a).toLowerCase();
+    const matchLocationQuery =
+      !q ||
+      formatted.includes(q) ||
+      a.location.toLowerCase().includes(q) ||
+      (a.suburb?.toLowerCase().includes(q) ?? false);
+    const matchCity = !cityFilter || a.location === cityFilter;
+    const matchSuburb = !suburbFilter || a.suburb === suburbFilter;
     const matchGender = gender === "All" || a.gender === gender;
     const matchBodyType = bodyType === "All" || a.bodyType === bodyType;
-    return matchSearch && matchLocation && matchGender && matchBodyType;
+    return matchSearch && matchLocationQuery && matchCity && matchSuburb && matchGender && matchBodyType;
   });
 
   const totalPages = Math.ceil(filtered.length / ADVERTS_PER_PAGE);
@@ -57,7 +66,7 @@ export default function HomePage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [search, location, gender, bodyType]);
+  }, [search, locationQuery, cityFilter, suburbFilter, gender, bodyType]);
 
   const goToPage = (page: number) => {
     if (page >= 1 && page <= totalPages) {
@@ -68,16 +77,27 @@ export default function HomePage() {
 
   const clearAllFilters = () => {
     setSearch("");
-    setLocation("");
+    setLocationQuery("");
+    setCityFilter("");
+    setSuburbFilter("");
     setGender("All");
     setBodyType("All");
   };
 
   const noExtraFilters =
-    !search && !location.trim() && gender === "All" && bodyType === "All";
+    !search &&
+    !locationQuery.trim() &&
+    !cityFilter &&
+    !suburbFilter &&
+    gender === "All" &&
+    bodyType === "All";
 
   const filterActive =
-    Boolean(location.trim()) || gender !== "All" || bodyType !== "All";
+    Boolean(locationQuery.trim()) ||
+    Boolean(cityFilter) ||
+    Boolean(suburbFilter) ||
+    gender !== "All" ||
+    bodyType !== "All";
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -116,8 +136,12 @@ export default function HomePage() {
             </SheetTrigger>
             <SheetContent side="left" className="w-[min(100vw-2rem,20rem)] p-5 pt-10">
               <FilterPanel
-                location={location}
-                onLocationChange={setLocation}
+                locationQuery={locationQuery}
+                onLocationQueryChange={setLocationQuery}
+                cityFilter={cityFilter}
+                onCityFilterChange={setCityFilter}
+                suburbFilter={suburbFilter}
+                onSuburbFilterChange={setSuburbFilter}
                 gender={gender}
                 onGenderChange={setGender}
                 bodyType={bodyType}
@@ -156,8 +180,12 @@ export default function HomePage() {
         >
           <div className="sticky top-14 max-h-[calc(100vh-3.5rem)] overflow-y-auto p-5">
             <FilterPanel
-              location={location}
-              onLocationChange={setLocation}
+              locationQuery={locationQuery}
+              onLocationQueryChange={setLocationQuery}
+              cityFilter={cityFilter}
+              onCityFilterChange={setCityFilter}
+              suburbFilter={suburbFilter}
+              onSuburbFilterChange={setSuburbFilter}
               gender={gender}
               onGenderChange={setGender}
               bodyType={bodyType}

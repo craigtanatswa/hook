@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Pencil, Trash2, Search } from "lucide-react";
 import { deleteAdvertAction } from "@/app/actions/adverts";
+import { formatAdvertLocation } from "@/lib/data";
 import { RepostButton } from "@/components/repost-button";
 
 function isUuid(id: string) {
@@ -15,6 +16,7 @@ interface Advert {
   id: string;
   name: string;
   location: string;
+  suburb?: string;
   expiresAt: string;
   images: string[];
   profileImage: string;
@@ -30,11 +32,14 @@ export function ExpiredAdvertsClient({ adverts }: Props) {
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
     if (!q) return adverts;
-    return adverts.filter(
-      (a) =>
+    return adverts.filter((a) => {
+      const loc = formatAdvertLocation(a).toLowerCase();
+      return (
         a.name.toLowerCase().includes(q) ||
-        a.location.toLowerCase().includes(q)
-    );
+        loc.includes(q) ||
+        (a.suburb?.toLowerCase().includes(q) ?? false)
+      );
+    });
   }, [adverts, query]);
 
   return (
@@ -110,7 +115,7 @@ export function ExpiredAdvertsClient({ adverts }: Props) {
                     <h3 className="font-bold text-foreground text-sm truncate">{advert.name}</h3>
                     <div className="flex items-center gap-1 mt-0.5">
                       <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
-                      <p className="text-xs text-muted-foreground truncate">{advert.location}</p>
+                      <p className="text-xs text-muted-foreground truncate">{formatAdvertLocation(advert)}</p>
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">Expired {expiredDate}</p>
                   </div>

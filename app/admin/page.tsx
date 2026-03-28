@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { formatAdvertLocation } from "@/lib/data";
 import { fetchAllAdvertsWithMediaForAdmin } from "@/lib/adverts-db";
 import { CheckCircle2, Clock, LayoutGrid, PlusCircle, ArrowRight } from "lucide-react";
 
@@ -91,7 +92,7 @@ export default async function AdminDashboard() {
             <div key={advert.id} className="flex items-center justify-between gap-3 px-4 py-3.5">
               <div className="min-w-0">
                 <p className="font-semibold text-sm text-foreground truncate">{advert.name}</p>
-                <p className="text-xs text-muted-foreground truncate">{advert.location}</p>
+                <p className="text-xs text-muted-foreground truncate">{formatAdvertLocation(advert)}</p>
               </div>
               <span className="shrink-0 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">
                 Active

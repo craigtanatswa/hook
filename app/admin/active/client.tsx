@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { MapPin, Pencil, Eye, Trash2, PauseCircle, Search, Star, X } from "lucide-react";
 import { deleteAdvertAction, deactivateAdvertAction } from "@/app/actions/adverts";
-import { zimbabweCities } from "@/lib/data";
+import { formatAdvertLocation, getSuburbsForCity, zimbabweCities } from "@/lib/data";
 
 function isUuid(id: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
@@ -15,6 +15,7 @@ interface Advert {
   id: string;
   name: string;
   location: string;
+  suburb?: string;
   expiresAt: string;
   images: string[];
   profileImage: string;
@@ -30,34 +31,39 @@ export function ActiveAdvertsClient({ adverts }: Props) {
   const [query, setQuery] = useState("");
   const [featuredFilter, setFeaturedFilter] = useState<"all" | "featured" | "standard">("all");
   const [locationFilter, setLocationFilter] = useState("");
+  const [suburbFilter, setSuburbFilter] = useState("");
 
   const filtered = useMemo(() => {
     return adverts.filter((a) => {
       const q = query.toLowerCase().trim();
+      const locLine = formatAdvertLocation(a).toLowerCase();
       const matchesSearch =
         !q ||
         a.name.toLowerCase().includes(q) ||
-        a.location.toLowerCase().includes(q);
+        locLine.includes(q) ||
+        (a.suburb?.toLowerCase().includes(q) ?? false);
 
       const matchesFeatured =
         featuredFilter === "all" ||
         (featuredFilter === "featured" && a.featured) ||
         (featuredFilter === "standard" && !a.featured);
 
-      const matchesLocation =
-        !locationFilter ||
-        a.location.toLowerCase().includes(locationFilter.toLowerCase());
+      const matchesCity = !locationFilter || a.location === locationFilter;
+      const matchesSuburb = !suburbFilter || a.suburb === suburbFilter;
 
-      return matchesSearch && matchesFeatured && matchesLocation;
+      return matchesSearch && matchesFeatured && matchesCity && matchesSuburb;
     });
-  }, [adverts, query, featuredFilter, locationFilter]);
+  }, [adverts, query, featuredFilter, locationFilter, suburbFilter]);
 
-  const hasFilters = query || featuredFilter !== "all" || locationFilter;
+  const hasFilters = query || featuredFilter !== "all" || locationFilter || suburbFilter;
   const clearAll = () => {
     setQuery("");
     setFeaturedFilter("all");
     setLocationFilter("");
+    setSuburbFilter("");
   };
+
+  const suburbOptions = locationFilter ? [...getSuburbsForCity(locationFilter)] : [];
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -110,7 +116,10 @@ export function ActiveAdvertsClient({ adverts }: Props) {
             <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             <select
               value={locationFilter}
-              onChange={(e) => setLocationFilter(e.target.value)}
+              onChange={(e) => {
+                setLocationFilter(e.target.value);
+                setSuburbFilter("");
+              }}
               className="rounded-lg border border-input bg-background px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="">All cities</option>
@@ -121,6 +130,24 @@ export function ActiveAdvertsClient({ adverts }: Props) {
               ))}
             </select>
           </div>
+
+          {suburbOptions.length > 0 && (
+            <div className="flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 text-muted-foreground shrink-0 opacity-60" />
+              <select
+                value={suburbFilter}
+                onChange={(e) => setSuburbFilter(e.target.value)}
+                className="rounded-lg border border-input bg-background px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-ring max-w-[10rem]"
+              >
+                <option value="">All suburbs</option>
+                {suburbOptions.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Clear all */}
           {hasFilters && (
@@ -175,7 +202,7 @@ export function ActiveAdvertsClient({ adverts }: Props) {
                     <h3 className="font-bold text-foreground text-sm truncate">{advert.name}</h3>
                     <div className="flex items-center gap-1 mt-0.5">
                       <MapPin className="h-3 w-3 text-muted-foreground shrink-0" />
-                      <p className="text-xs text-muted-foreground truncate">{advert.location}</p>
+                      <p className="text-xs text-muted-foreground truncate">{formatAdvertLocation(advert)}</p>
                     </div>
                     <p className="text-xs text-muted-foreground mt-0.5">Exp. {expires}</p>
                   </div>

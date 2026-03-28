@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { genders, bodyTypes, zimbabweCities } from "@/lib/data";
+import { genders, bodyTypes, zimbabweCities, zimbabweCitySuburbs, type ZimbabweCity } from "@/lib/data";
 import { MediaUploader } from "@/components/media-uploader";
 import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
@@ -14,6 +14,7 @@ type AdvertFormProps = {
     name?: string;
     age?: string;
     location?: string;
+    suburb?: string;
     phone?: string;
     whatsapp?: string;
     email?: string;
@@ -51,6 +52,28 @@ export function AdvertForm({
     return Number.isFinite(v) && v > 0 ? String(v) : "7";
   }, [defaultValues.featuredDays]);
   const [featuredDays, setFeaturedDays] = useState(defaultFeaturedDays);
+
+  const initialCity = zimbabweCities.includes(defaultValues.location as (typeof zimbabweCities)[number])
+    ? defaultValues.location!
+    : "Harare";
+  const [city, setCity] = useState(initialCity);
+  const [suburb, setSuburb] = useState(() => {
+    const subs = [...zimbabweCitySuburbs[initialCity as ZimbabweCity]];
+    const saved = defaultValues.suburb?.trim();
+    if (saved && subs.some((x) => x === saved)) return saved;
+    return subs[0] ?? "";
+  });
+
+  useEffect(() => {
+    const c = zimbabweCities.includes(defaultValues.location as (typeof zimbabweCities)[number])
+      ? defaultValues.location!
+      : "Harare";
+    setCity(c);
+    const subs = [...zimbabweCitySuburbs[c as ZimbabweCity]];
+    const saved = defaultValues.suburb?.trim();
+    if (saved && subs.some((x) => x === saved)) setSuburb(saved);
+    else setSuburb(subs[0] ?? "");
+  }, [defaultValues.location, defaultValues.suburb]);
 
   const maxFeaturedDays = useMemo(() => {
     // Create mode: expiryChoice is a number/custom, so we can cap featured days to that.
@@ -202,28 +225,51 @@ export function AdvertForm({
           </div>
         </div>
 
-        {/* Location */}
-        <div>
-          <label htmlFor="location" className="block text-sm font-semibold text-foreground mb-1.5">
-            Location *
-          </label>
-          <select
-            id="location"
-            name="location"
-            required
-            defaultValue={
-              zimbabweCities.includes(defaultValues.location as never)
-                ? defaultValues.location
-                : "Harare"
-            }
-            className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            {zimbabweCities.map((city) => (
-              <option key={city} value={city}>
-                {city}
-              </option>
-            ))}
-          </select>
+        {/* City & suburb */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label htmlFor="location" className="block text-sm font-semibold text-foreground mb-1.5">
+              City *
+            </label>
+            <select
+              id="location"
+              name="location"
+              required
+              value={city}
+              onChange={(e) => {
+                const next = e.target.value;
+                setCity(next);
+                const subs = zimbabweCitySuburbs[next as ZimbabweCity];
+                setSuburb(subs[0] ?? "");
+              }}
+              className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              {zimbabweCities.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="suburb" className="block text-sm font-semibold text-foreground mb-1.5">
+              Suburb *
+            </label>
+            <select
+              id="suburb"
+              name="suburb"
+              required
+              value={suburb}
+              onChange={(e) => setSuburb(e.target.value)}
+              className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              {zimbabweCitySuburbs[city as ZimbabweCity].map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Gender & body type */}

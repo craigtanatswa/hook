@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, ChevronLeft, ChevronRight, Star, BadgeCheck, Film } from "lucide-react";
-import type { Advert } from "@/lib/data";
+import { formatAdvertLocation, type Advert } from "@/lib/data";
 import { ContactButtons } from "@/components/contact-buttons";
 import { RatingStars } from "@/components/rating-stars";
 
@@ -169,7 +169,7 @@ export function AdvertCard({ advert }: AdvertCardProps) {
           <span aria-hidden>·</span>
           <span className="flex items-center gap-1 min-w-0 basis-full sm:basis-auto">
             <MapPin className="h-3.5 w-3.5 text-primary shrink-0" />
-            <span className="truncate">{advert.location}</span>
+            <span className="truncate">{formatAdvertLocation(advert)}</span>
           </span>
         </div>
 

@@ -6,6 +6,7 @@ type AdvertRow = {
   name: string;
   age: number;
   location: string;
+  suburb: string | null;
   gender: string;
   body_type: string;
   short_description: string;
@@ -78,6 +79,7 @@ function rowToAdvert(
     name: row.name,
     age: row.age,
     location: row.location,
+    suburb: row.suburb ?? undefined,
     gender: row.gender,
     bodyType: row.body_type as BodyType,
     shortDescription: row.short_description,
@@ -225,6 +227,7 @@ export type AdvertInput = {
   name: string;
   age: number;
   location: string;
+  suburb: string;
   gender: string;
   bodyType: string;
   shortDescription: string;
@@ -259,6 +262,7 @@ export async function insertAdvertWithMedia(input: AdvertInput): Promise<{ id: s
         name: input.name,
         age: input.age,
         location: input.location,
+        suburb: input.suburb,
         gender: input.gender,
         body_type: input.bodyType,
         short_description: input.shortDescription.slice(0, 500),
@@ -312,6 +316,7 @@ export async function updateAdvertWithMedia(
       name: input.name,
       age: input.age,
       location: input.location,
+      suburb: input.suburb,
       gender: input.gender,
       body_type: input.bodyType,
       short_description: input.shortDescription.slice(0, 500),

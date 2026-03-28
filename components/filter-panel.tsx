@@ -2,13 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { ChevronDown, ChevronUp, MapPin } from "lucide-react";
-import { genders, bodyTypes, zimbabweCities } from "@/lib/data";
+import { genders, bodyTypes, zimbabweCities, zimbabweCitySuburbs, type ZimbabweCity } from "@/lib/data";
 
 const CITY_PREVIEW_COUNT = 5;
 
 type FilterPanelProps = {
-  location: string;
-  onLocationChange: (v: string) => void;
+  locationQuery: string;
+  onLocationQueryChange: (v: string) => void;
+  cityFilter: string;
+  onCityFilterChange: (v: string) => void;
+  suburbFilter: string;
+  onSuburbFilterChange: (v: string) => void;
   gender: string;
   onGenderChange: (v: string) => void;
   bodyType: string;
@@ -19,8 +23,12 @@ type FilterPanelProps = {
 };
 
 export function FilterPanel({
-  location,
-  onLocationChange,
+  locationQuery,
+  onLocationQueryChange,
+  cityFilter,
+  onCityFilterChange,
+  suburbFilter,
+  onSuburbFilterChange,
   gender,
   onGenderChange,
   bodyType,
@@ -32,20 +40,27 @@ export function FilterPanel({
   const [citiesExpanded, setCitiesExpanded] = useState(false);
 
   useEffect(() => {
-    const trimmed = location.trim();
-    const idx = zimbabweCities.findIndex((c) => c === trimmed);
+    const idx = zimbabweCities.findIndex((c) => c === cityFilter);
     if (idx >= CITY_PREVIEW_COUNT) {
       setCitiesExpanded(true);
     }
-  }, [location]);
+  }, [cityFilter]);
 
   const hasMoreCities = zimbabweCities.length > CITY_PREVIEW_COUNT;
   const visibleCities = citiesExpanded
     ? zimbabweCities
     : zimbabweCities.slice(0, CITY_PREVIEW_COUNT);
 
+  const suburbList = cityFilter
+    ? [...(zimbabweCitySuburbs[cityFilter as ZimbabweCity] ?? [])]
+    : [];
+
   const hasActive =
-    Boolean(location.trim()) || gender !== "All" || bodyType !== "All";
+    Boolean(locationQuery.trim()) ||
+    Boolean(cityFilter) ||
+    Boolean(suburbFilter) ||
+    gender !== "All" ||
+    bodyType !== "All";
 
   const btnBase =
     "w-full text-left px-3 py-2 rounded-xl text-sm font-semibold transition-colors";
@@ -67,7 +82,7 @@ export function FilterPanel({
         )}
       </div>
 
-      {/* Location: search + one-click cities */}
+      {/* Location: search + cities + suburbs */}
       <div>
         <label htmlFor="filter-location" className="text-xs font-semibold text-muted-foreground mb-1.5 block">
           Location
@@ -77,9 +92,9 @@ export function FilterPanel({
           <input
             id="filter-location"
             type="search"
-            value={location}
-            onChange={(e) => onLocationChange(e.target.value)}
-            placeholder="Search area, hotel, or city…"
+            value={locationQuery}
+            onChange={(e) => onLocationQueryChange(e.target.value)}
+            placeholder="Search suburb or city…"
             autoComplete="off"
             className="w-full pl-9 pr-3 py-2 text-sm rounded-xl border border-input bg-background focus:outline-none focus:ring-2 focus:ring-ring"
           />
@@ -90,8 +105,11 @@ export function FilterPanel({
         >
           <button
             type="button"
-            onClick={() => onLocationChange("")}
-            className={`${btnBase} ${!location.trim() ? btnActive : btnIdle}`}
+            onClick={() => {
+              onCityFilterChange("");
+              onSuburbFilterChange("");
+            }}
+            className={`${btnBase} ${!cityFilter ? btnActive : btnIdle}`}
           >
             All cities
           </button>
@@ -99,8 +117,11 @@ export function FilterPanel({
             <button
               key={city}
               type="button"
-              onClick={() => onLocationChange(city)}
-              className={`${btnBase} ${location.trim() === city ? btnActive : btnIdle}`}
+              onClick={() => {
+                onCityFilterChange(city);
+                onSuburbFilterChange("");
+              }}
+              className={`${btnBase} ${cityFilter === city ? btnActive : btnIdle}`}
             >
               {city}
             </button>
@@ -111,8 +132,7 @@ export function FilterPanel({
               onClick={() => {
                 setCitiesExpanded((expanded) => {
                   if (expanded) {
-                    const trimmed = location.trim();
-                    const idx = zimbabweCities.findIndex((c) => c === trimmed);
+                    const idx = zimbabweCities.findIndex((c) => c === cityFilter);
                     if (idx >= CITY_PREVIEW_COUNT) return true;
                   }
                   return !expanded;
@@ -134,6 +154,35 @@ export function FilterPanel({
             </button>
           )}
         </div>
+
+        {cityFilter && suburbList.length > 0 && (
+          <>
+            <span className="text-xs font-semibold text-muted-foreground mb-2 mt-4 block">
+              Suburbs in {cityFilter}
+            </span>
+            <div
+              className={`flex flex-col gap-1.5 ${compact ? "max-h-40 overflow-y-auto pr-1 -mr-1" : ""}`}
+            >
+              <button
+                type="button"
+                onClick={() => onSuburbFilterChange("")}
+                className={`${btnBase} ${!suburbFilter ? btnActive : btnIdle}`}
+              >
+                All suburbs
+              </button>
+              {suburbList.map((sub) => (
+                <button
+                  key={sub}
+                  type="button"
+                  onClick={() => onSuburbFilterChange(sub)}
+                  className={`${btnBase} ${suburbFilter === sub ? btnActive : btnIdle}`}
+                >
+                  {sub}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Gender */}

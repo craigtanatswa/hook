@@ -5,6 +5,8 @@ export type Advert = {
   name: string;
   age: number;
   location: string;
+  /** Suburb within `location` (city); omitted for legacy rows. */
+  suburb?: string;
   /** e.g. Female, Male */
   gender: string;
   /** Fit | Thick | Average | Slender */
@@ -239,6 +241,66 @@ export const zimbabweCities = [
 ] as const;
 
 export type ZimbabweCity = (typeof zimbabweCities)[number];
+
+/** Suburbs per city — used for listing signup and filters. */
+export const zimbabweCitySuburbs = {
+  Harare: [
+    "Borrowdale",
+    "Highlands",
+    "Mount Pleasant",
+    "Avondale",
+    "Mabelreign",
+    "Highfield",
+    "Mbare",
+    "Budiriro",
+    "Greendale",
+    "Waterfalls",
+  ],
+  Bulawayo: [
+    "Hillside",
+    "Suburbs",
+    "Kumalo",
+    "Morningside",
+    "Makokoba",
+    "Cowdray Park",
+    "Nkulumane",
+    "Bradfield",
+    "Burnside",
+    "Paddonhurst",
+  ],
+  Chitungwiza: ["Seke", "Zengeza", "St Mary's", "Unit L", "Manyame Park"],
+  Mutare: ["Murambi", "Chikanga", "Dangamvura", "Sakubva", "Yeovil"],
+  Gweru: ["Mkoba", "Daylesford", "Southview", "Lundi Park", "Ascot"],
+  Kwekwe: ["Mbizo", "Msasa Park", "Newtown", "Roasting Plant", "Fitchlea"],
+  Kadoma: ["Rimuka", "Eiffel Flats", "Mornington", "Westview", "Cherrybank"],
+  Masvingo: ["Mucheke", "Rujeko", "Rhodene", "Target Kopje", "Victoria Ranch"],
+  Chinhoyi: ["Orange Grove", "Brundish", "Shackleton", "Gwayagwaya", "Hunyani"],
+  Marondera: ["Paradise Park", "Winston Park", "Dombotombo", "Yellow City", "Ruzawi"],
+  Norton: ["Knowe", "Katanga", "Twin Lakes", "Maridale", "Govans"],
+  Chegutu: ["Pfupajena", "Hintonville", "Chakari", "Umvovo", "Chinengundu"],
+  Zvishavane: ["Mandava", "Maglas", "Birthday", "Hillview", "Pote"],
+  Bindura: ["Chipadze", "Aerodrome", "Low Density", "Chiwaridzo", "Brockley"],
+  Beitbridge: ["Dulivhadzimu", "Messina", "Medium Density", "Holiday Inn Area", "Border Post Area"],
+  Hwange: ["Empumalanga", "Baobab", "Number 1", "Number 2", "Number 3"],
+  Kariba: ["Mahombekombe", "Nyamhunga", "Breezes", "Heights", "Cutty Sark"],
+  Rusape: ["Vengere", "Castle Beacon", "Maglas", "Mabvazuva"],
+  Chiredzi: ["Tshovani", "Hippo Valley", "Triangle", "Low Density"],
+  "Victoria Falls": ["Chinotimba", "Mkhosana", "Low Density", "Aerodrome"],
+  Gokwe: ["Mapfungautsi", "Sasame", "Green Valley", "Njelele"],
+  Shurugwi: ["Sebanga", "Peak Mine", "Railway Block", "Ironsides"],
+  Chipinge: ["Gaza", "Low Density", "Medium Density", "Stoddart"],
+  Redcliff: ["Rutendo", "Torwood", "Millview", "Simbi Park"],
+} as const satisfies Readonly<Record<ZimbabweCity, readonly string[]>>;
+
+export function getSuburbsForCity(city: string): readonly string[] {
+  return (zimbabweCitySuburbs as Record<string, readonly string[]>)[city] ?? [];
+}
+
+export function formatAdvertLocation(advert: { location: string; suburb?: string }): string {
+  const s = advert.suburb?.trim();
+  if (s) return `${s}, ${advert.location}`;
+  return advert.location;
+}
 
 export const genders = ["All", "Female", "Male"] as const;
 

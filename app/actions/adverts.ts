@@ -9,6 +9,7 @@ import {
   repostAdvert,
   type AdvertInput,
 } from "@/lib/adverts-db";
+import { getSuburbsForCity, zimbabweCities } from "@/lib/data";
 
 function parseMediaUrls(formData: FormData): string[] {
   const raw = formData.get("media_urls");
@@ -26,6 +27,7 @@ function buildInput(formData: FormData): AdvertInput | { error: string } {
   const name = String(formData.get("name") || "").trim();
   const age = parseInt(String(formData.get("age") || "0"), 10);
   const location = String(formData.get("location") || "").trim();
+  const suburb = String(formData.get("suburb") || "").trim();
   const gender = String(formData.get("gender") || "Female");
   const bodyType = String(formData.get("bodyType") || "Average");
   const fullDescription = String(formData.get("description") || "").trim();
@@ -42,8 +44,15 @@ function buildInput(formData: FormData): AdvertInput | { error: string } {
     .split(/\r?\n/)
     .map((s) => s.trim() || "50% 50%");
 
-  if (!name || !location || !fullDescription || !phone || !whatsapp) {
+  if (!name || !location || !suburb || !fullDescription || !phone || !whatsapp) {
     return { error: "Missing required fields" };
+  }
+  if (!zimbabweCities.includes(location as (typeof zimbabweCities)[number])) {
+    return { error: "Invalid city" };
+  }
+  const allowedSuburbs = getSuburbsForCity(location);
+  if (!allowedSuburbs.includes(suburb)) {
+    return { error: "Invalid suburb for selected city" };
   }
   if (mediaUrls.length === 0) {
     return { error: "Please add at least one photo before publishing." };
@@ -67,6 +76,7 @@ function buildInput(formData: FormData): AdvertInput | { error: string } {
     name,
     age: Number.isFinite(age) ? age : 25,
     location,
+    suburb,
     gender,
     bodyType,
     shortDescription: fullDescription.slice(0, 280),

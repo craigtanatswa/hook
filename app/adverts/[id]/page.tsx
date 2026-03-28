@@ -6,7 +6,7 @@ import { ImageGallery } from "@/components/image-gallery";
 import { ContactButtons } from "@/components/contact-buttons";
 import { AdvertCard } from "@/components/advert-card";
 import { RatingWidget } from "@/components/rating-widget";
-import type { Advert } from "@/lib/data";
+import { formatAdvertLocation, type Advert } from "@/lib/data";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -64,7 +64,7 @@ export default async function AdvertDetailPage({ params }: Props) {
               <span className="text-muted-foreground text-xs">•</span>
               <div className="flex items-center gap-1 text-sm text-muted-foreground">
                 <MapPin className="h-4 w-4 text-primary shrink-0" />
-                <span>{advert.location}</span>
+                <span>{formatAdvertLocation(advert)}</span>
               </div>
             </div>
           </div>

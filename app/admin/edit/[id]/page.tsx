@@ -51,6 +51,7 @@ export default async function EditAdvertPage({ params }: Props) {
             name: advert.name,
             age: String(advert.age),
             location: advert.location,
+            suburb: advert.suburb,
             gender: advert.gender,
             bodyType: advert.bodyType,
             phone: advert.phone,
