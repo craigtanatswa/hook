@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Search, SlidersHorizontal, Sun, Moon, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTheme } from "next-themes";
 import { AdvertCard } from "@/components/advert-card";
-import { FeaturedAdvertsSection } from "@/components/featured-adverts-section";
+import { PremiumAdvertsSection } from "@/components/premium-adverts-section";
 import { FilterPanel } from "@/components/filter-panel";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { formatAdvertLocation, type Advert } from "@/lib/data";
+import { formatAdvertLocation, sortAdvertsForFeed, type Advert } from "@/lib/data";
 import Link from "next/link";
 
 const ADVERTS_PER_PAGE = 10;
@@ -15,7 +15,7 @@ const ADVERTS_PER_PAGE = 10;
 export default function HomePage() {
   // null = loading; [] = loaded but empty; Advert[] = loaded with results
   const [allAdverts, setAllAdverts] = useState<Advert[] | null>(null);
-  const [featuredAdverts, setFeaturedAdverts] = useState<Advert[]>([]);
+  const [premiumAdverts, setPremiumAdverts] = useState<Advert[]>([]);
 
   useEffect(() => {
     fetch("/api/adverts")
@@ -23,7 +23,7 @@ export default function HomePage() {
       .then((d: { adverts?: Advert[] }) => {
         const list = d.adverts ?? [];
         setAllAdverts(list);
-        setFeaturedAdverts(list.filter((a) => a.featured));
+        setPremiumAdverts(list.filter((a) => a.premium));
       })
       .catch(() => setAllAdverts([]));
   }, []);
@@ -41,24 +41,27 @@ export default function HomePage() {
 
   useEffect(() => setMounted(true), []);
 
-  const filtered = (allAdverts ?? []).filter((a) => {
-    const matchSearch =
-      !search ||
-      a.name.toLowerCase().includes(search.toLowerCase()) ||
-      a.shortDescription.toLowerCase().includes(search.toLowerCase());
-    const q = locationQuery.trim().toLowerCase();
-    const formatted = formatAdvertLocation(a).toLowerCase();
-    const matchLocationQuery =
-      !q ||
-      formatted.includes(q) ||
-      a.location.toLowerCase().includes(q) ||
-      (a.suburb?.toLowerCase().includes(q) ?? false);
-    const matchCity = !cityFilter || a.location === cityFilter;
-    const matchSuburb = !suburbFilter || a.suburb === suburbFilter;
-    const matchGender = gender === "All" || a.gender === gender;
-    const matchBodyType = bodyType === "All" || a.bodyType === bodyType;
-    return matchSearch && matchLocationQuery && matchCity && matchSuburb && matchGender && matchBodyType;
-  });
+  const filtered = useMemo(() => {
+    const raw = (allAdverts ?? []).filter((a) => {
+      const matchSearch =
+        !search ||
+        a.name.toLowerCase().includes(search.toLowerCase()) ||
+        a.shortDescription.toLowerCase().includes(search.toLowerCase());
+      const q = locationQuery.trim().toLowerCase();
+      const formatted = formatAdvertLocation(a).toLowerCase();
+      const matchLocationQuery =
+        !q ||
+        formatted.includes(q) ||
+        a.location.toLowerCase().includes(q) ||
+        (a.suburb?.toLowerCase().includes(q) ?? false);
+      const matchCity = !cityFilter || a.location === cityFilter;
+      const matchSuburb = !suburbFilter || a.suburb === suburbFilter;
+      const matchGender = gender === "All" || a.gender === gender;
+      const matchBodyType = bodyType === "All" || a.bodyType === bodyType;
+      return matchSearch && matchLocationQuery && matchCity && matchSuburb && matchGender && matchBodyType;
+    });
+    return sortAdvertsForFeed(raw);
+  }, [allAdverts, search, locationQuery, cityFilter, suburbFilter, gender, bodyType]);
 
   const totalPages = Math.ceil(filtered.length / ADVERTS_PER_PAGE);
   const startIndex = (currentPage - 1) * ADVERTS_PER_PAGE;
@@ -233,17 +236,17 @@ export default function HomePage() {
           {/* Loaded with results */}
           {allAdverts !== null && filtered.length > 0 && (
             <>
-              {featuredAdverts.length > 0 && currentPage === 1 && noExtraFilters && (
+              {premiumAdverts.length > 0 && currentPage === 1 && noExtraFilters && (
                 <div className="mb-8">
                   <h2 className="text-lg font-bold text-foreground mb-3">Tonight&apos;s obsession</h2>
-                  <FeaturedAdvertsSection adverts={featuredAdverts} />
+                  <PremiumAdvertsSection adverts={premiumAdverts} />
                 </div>
               )}
 
-              {featuredAdverts.length > 0 && !noExtraFilters && filtered.some((a) => a.featured) && (
+              {premiumAdverts.length > 0 && !noExtraFilters && filtered.some((a) => a.premium) && (
                 <div className="mb-6">
                   <h2 className="text-lg font-bold text-foreground mb-3">Still dripping in your search</h2>
-                  <FeaturedAdvertsSection adverts={filtered.filter((a) => a.featured)} />
+                  <PremiumAdvertsSection adverts={filtered.filter((a) => a.premium)} />
                 </div>
               )}
 

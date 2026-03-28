@@ -22,11 +22,24 @@ export type Advert = {
   postedAt: string;
   expiresAt: string;
   status: "active" | "expired";
-  featured?: boolean;
-  featuredUntil?: string;
+  /** Hero strip + priority ordering; time-limited via `premiumUntil`. */
+  premium?: boolean;
+  premiumUntil?: string;
+  /** Badge-only tier; time-limited via `vipUntil`. */
+  vip?: boolean;
+  vipUntil?: string;
   ratingAvg?: number;
   ratingCount?: number;
 };
+
+/** Premium listings first, then newest by `postedAt` (used for API + home feed). */
+export function sortAdvertsForFeed(adverts: Advert[]): Advert[] {
+  return [...adverts].sort((a, b) => {
+    if (a.premium && !b.premium) return -1;
+    if (!a.premium && b.premium) return 1;
+    return new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime();
+  });
+}
 
 export const adverts: Advert[] = [
   {
@@ -48,7 +61,7 @@ export const adverts: Advert[] = [
     postedAt: "2025-03-08T09:00:00Z",
     expiresAt: "2025-04-07T09:00:00Z",
     status: "active",
-    featured: true,
+    premium: true,
   },
   {
     id: "2",
@@ -193,8 +206,8 @@ export const getActiveAdverts = () =>
   adverts
     .filter((a) => a.status === "active")
     .sort((a, b) => {
-      if (a.featured && !b.featured) return -1;
-      if (!a.featured && b.featured) return 1;
+      if (a.premium && !b.premium) return -1;
+      if (!a.premium && b.premium) return 1;
       return new Date(b.postedAt).getTime() - new Date(a.postedAt).getTime();
     });
 
@@ -205,7 +218,7 @@ export const getExpiredAdverts = () =>
 
 export const getAdvertById = (id: string) => adverts.find((a) => a.id === id);
 
-export const getFeaturedAdverts = () => getActiveAdverts().filter((a) => a.featured);
+export const getPremiumAdverts = () => getActiveAdverts().filter((a) => a.premium);
 
 export const getSuggestedAdverts = (excludeId: string, limit = 6): Advert[] => {
   return getActiveAdverts()

@@ -26,7 +26,8 @@ export default async function EditAdvertPage({ params }: Props) {
   if (!advert) notFound();
 
   const boundUpdate = updateAdvertAction.bind(null, advert.id);
-  const featuredDaysDefault = remainingDaysFromUntil(advert.featuredUntil);
+  const premiumDaysDefault = remainingDaysFromUntil(advert.premiumUntil);
+  const vipDaysDefault = remainingDaysFromUntil(advert.vipUntil);
 
   return (
     <div className="p-6 max-w-2xl mx-auto">
@@ -60,8 +61,10 @@ export default async function EditAdvertPage({ params }: Props) {
             description: advert.fullDescription,
             mediaUrls: advert.images.join("\n"),
             mediaFocalPoints: advert.imageFocalPoints?.join("\n"),
-            featured: advert.featured ? "true" : undefined,
-            featuredDays: featuredDaysDefault,
+            premium: advert.premium ? "true" : undefined,
+            vip: advert.vip ? "true" : undefined,
+            premiumDays: premiumDaysDefault,
+            vipDays: vipDaysDefault,
             expiresAt: advert.expiresAt,
           }}
           submitLabel="Save changes"

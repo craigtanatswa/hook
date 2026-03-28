@@ -1,6 +1,7 @@
 "use client";
 
 import { Phone, Mail } from "lucide-react";
+import { normalizeWhatsappDigits, telHref } from "@/lib/phone-zw";
 
 type ContactButtonsProps = {
   phone: string;
@@ -12,8 +13,9 @@ type ContactButtonsProps = {
 export function ContactButtons({ phone, whatsapp, email, size = "default" }: ContactButtonsProps) {
   const isLarge = size === "large";
 
-  const whatsappUrl = `https://wa.me/${whatsapp}`;
-  const callUrl = `tel:${phone}`;
+  const waDigits = normalizeWhatsappDigits(whatsapp);
+  const whatsappUrl = `https://wa.me/${waDigits}`;
+  const callUrl = telHref(phone);
   const mailUrl = email ? `mailto:${email}` : undefined;
 
   return (

@@ -22,9 +22,13 @@ type AdvertFormProps = {
     gender?: string;
     bodyType?: string;
     expiry?: string;
-      expiresAt?: string;
-    featured?: string;
-    featuredDays?: string;
+    expiresAt?: string;
+    /** "true" when Premium boost is enabled in the form */
+    premium?: string;
+    /** "true" when VIP badge is enabled */
+    vip?: string;
+    premiumDays?: string;
+    vipDays?: string;
     mediaUrls?: string;
     mediaFocalPoints?: string;
   };
@@ -47,11 +51,18 @@ export function AdvertForm({
   const [successName, setSuccessName] = useState<string | null>(null);
   const [expiryChoice, setExpiryChoice] = useState(isEdit ? "keep" : (defaultValues.expiry || "30"));
   const [customDays, setCustomDays] = useState("14");
-  const defaultFeaturedDays = useMemo(() => {
-    const v = parseInt(String(defaultValues.featuredDays || "7"), 10);
+  const defaultPremiumDays = useMemo(() => {
+    const v = parseInt(String(defaultValues.premiumDays || "7"), 10);
     return Number.isFinite(v) && v > 0 ? String(v) : "7";
-  }, [defaultValues.featuredDays]);
-  const [featuredDays, setFeaturedDays] = useState(defaultFeaturedDays);
+  }, [defaultValues.premiumDays]);
+  const defaultVipDays = useMemo(() => {
+    const v = parseInt(String(defaultValues.vipDays || "7"), 10);
+    return Number.isFinite(v) && v > 0 ? String(v) : "7";
+  }, [defaultValues.vipDays]);
+  const [premiumDays, setPremiumDays] = useState(defaultPremiumDays);
+  const [vipDays, setVipDays] = useState(defaultVipDays);
+  const [premiumOn, setPremiumOn] = useState(defaultValues.premium === "true");
+  const [vipOn, setVipOn] = useState(defaultValues.vip === "true");
 
   const initialCity = zimbabweCities.includes(defaultValues.location as (typeof zimbabweCities)[number])
     ? defaultValues.location!
@@ -75,8 +86,7 @@ export function AdvertForm({
     else setSuburb(subs[0] ?? "");
   }, [defaultValues.location, defaultValues.suburb]);
 
-  const maxFeaturedDays = useMemo(() => {
-    // Create mode: expiryChoice is a number/custom, so we can cap featured days to that.
+  const maxTierDays = useMemo(() => {
     if (!isEdit) {
       if (expiryChoice === "custom") {
         const d = parseInt(customDays, 10);
@@ -103,6 +113,22 @@ export function AdvertForm({
     }
     return 365;
   }, [customDays, defaultValues.expiresAt, expiryChoice, isEdit]);
+
+  useEffect(() => {
+    setPremiumDays(defaultPremiumDays);
+  }, [defaultPremiumDays]);
+
+  useEffect(() => {
+    setVipDays(defaultVipDays);
+  }, [defaultVipDays]);
+
+  useEffect(() => {
+    if (defaultValues.premium !== undefined) setPremiumOn(defaultValues.premium === "true");
+  }, [defaultValues.premium]);
+
+  useEffect(() => {
+    if (defaultValues.vip !== undefined) setVipOn(defaultValues.vip === "true");
+  }, [defaultValues.vip]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -323,7 +349,7 @@ export function AdvertForm({
               name="phone"
               type="tel"
               required
-              placeholder="+27 82 123 4567"
+              placeholder="0712345678 or +263 77 123 4567"
               defaultValue={defaultValues.phone}
               className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
@@ -337,7 +363,7 @@ export function AdvertForm({
               name="whatsapp"
               type="tel"
               required
-              placeholder="27821234567"
+              placeholder="0712345678 or +263771234567"
               defaultValue={defaultValues.whatsapp}
               className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
             />
@@ -407,37 +433,83 @@ export function AdvertForm({
           )}
         </div>
 
-        <div className="flex items-start gap-3 rounded-xl border border-border bg-accent/30 p-4">
-          <input
-            id="featured"
-            name="featured"
-            type="checkbox"
-            defaultChecked={defaultValues.featured === "true"}
-            className="mt-0.5 h-4 w-4 rounded border-border accent-primary cursor-pointer"
-          />
-          <div className="flex-1">
-            <label htmlFor="featured" className="text-sm font-semibold text-foreground cursor-pointer">
-              Feature this listing
-            </label>
+        <div className="rounded-xl border border-border bg-accent/30 p-4 space-y-4">
+          <div>
+            <p className="text-sm font-semibold text-foreground">Listing boost</p>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Featured profiles hit the hero strip first.
+              Turn on Premium, VIP, or both. Premium adds the hero strip and feed priority; VIP adds the gold badge.
+              Leave both off for normal placement.
             </p>
-            <div className="mt-3 flex items-center gap-3">
-              <label className="text-xs font-semibold text-muted-foreground" htmlFor="featured_days">
-                Featured for
-              </label>
+          </div>
+          <div className="space-y-4">
+            <label className="flex items-start gap-3 cursor-pointer">
               <input
-                id="featured_days"
-                name="featured_days"
-                type="number"
-                min={1}
-                max={maxFeaturedDays}
-                value={featuredDays}
-                onChange={(e) => setFeaturedDays(e.target.value)}
-                className="w-24 rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                type="checkbox"
+                name="premium"
+                id="premium"
+                checked={premiumOn}
+                onChange={(e) => setPremiumOn(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-border accent-primary"
               />
-              <span className="text-sm text-muted-foreground">day(s)</span>
-            </div>
+              <span className="flex-1 min-w-0">
+                <span className="text-sm font-semibold text-foreground">Premium</span>
+                <span className="block text-xs text-muted-foreground">
+                  Hero strip + orange metallic badge + sorted first in the feed.
+                </span>
+                {premiumOn && (
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                    <label className="text-xs font-semibold text-muted-foreground" htmlFor="premium_days">
+                      Premium for
+                    </label>
+                    <input
+                      id="premium_days"
+                      name="premium_days"
+                      type="number"
+                      min={1}
+                      max={maxTierDays}
+                      value={premiumDays}
+                      onChange={(e) => setPremiumDays(e.target.value)}
+                      className="w-24 rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    />
+                    <span className="text-sm text-muted-foreground">day(s)</span>
+                  </div>
+                )}
+              </span>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                name="vip"
+                id="vip"
+                checked={vipOn}
+                onChange={(e) => setVipOn(e.target.checked)}
+                className="mt-1 h-4 w-4 rounded border-border accent-primary"
+              />
+              <span className="flex-1 min-w-0">
+                <span className="text-sm font-semibold text-foreground">VIP</span>
+                <span className="block text-xs text-muted-foreground">
+                  Gold metallic badge on the card (can combine with Premium).
+                </span>
+                {vipOn && (
+                  <div className="mt-3 flex flex-wrap items-center gap-3">
+                    <label className="text-xs font-semibold text-muted-foreground" htmlFor="vip_days">
+                      VIP for
+                    </label>
+                    <input
+                      id="vip_days"
+                      name="vip_days"
+                      type="number"
+                      min={1}
+                      max={maxTierDays}
+                      value={vipDays}
+                      onChange={(e) => setVipDays(e.target.value)}
+                      className="w-24 rounded-xl border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                    />
+                    <span className="text-sm text-muted-foreground">day(s)</span>
+                  </div>
+                )}
+              </span>
+            </label>
           </div>
         </div>
 

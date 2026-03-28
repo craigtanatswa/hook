@@ -1,4 +1,4 @@
-import type { Advert, BodyType } from "@/lib/data";
+import { sortAdvertsForFeed, type Advert, type BodyType } from "@/lib/data";
 import { createServiceClient } from "@/lib/supabase/server";
 
 type AdvertRow = {
@@ -16,9 +16,17 @@ type AdvertRow = {
   email: string | null;
   expiry_date: string;
   status: "active" | "expired";
-  featured: boolean;
-  featured_until?: string | null;
+  premium: boolean;
+  premium_until?: string | null;
+  vip: boolean;
+  vip_until?: string | null;
   created_at: string;
+};
+
+/** Pre-migration rows may still use `featured` / `featured_until` instead of premium columns. */
+type AdvertRowFromDb = AdvertRow & {
+  featured?: boolean;
+  featured_until?: string | null;
 };
 
 type MediaRow = {
@@ -60,7 +68,7 @@ async function fetchRatingsByAdvertIds(ids: string[]): Promise<Map<string, Ratin
 }
 
 function rowToAdvert(
-  row: AdvertRow,
+  row: AdvertRowFromDb,
   mediaUrls: string[],
   focalPoints?: string[],
   rating?: RatingSummary
@@ -70,9 +78,15 @@ function rowToAdvert(
   const expires = new Date(row.expiry_date);
   const status: "active" | "expired" =
     row.status === "expired" || expires <= now ? "expired" : "active";
-  const featuredUntilIso = row.featured_until ?? undefined;
-  const featuredUntilDate = featuredUntilIso ? new Date(featuredUntilIso) : null;
-  const isFeatured = Boolean(row.featured) && (!featuredUntilDate || featuredUntilDate > now);
+
+  const premiumFlag = row.premium ?? row.featured ?? false;
+  const premiumUntilIso = (row.premium_until ?? row.featured_until) ?? undefined;
+  const premiumUntilDate = premiumUntilIso ? new Date(premiumUntilIso) : null;
+  const isPremium = Boolean(premiumFlag) && (!premiumUntilDate || premiumUntilDate > now);
+
+  const vipUntilIso = row.vip_until ?? undefined;
+  const vipUntilDate = vipUntilIso ? new Date(vipUntilIso) : null;
+  const isVip = Boolean(row.vip) && (!vipUntilDate || vipUntilDate > now);
 
   return {
     id: row.id,
@@ -93,8 +107,10 @@ function rowToAdvert(
     postedAt: row.created_at,
     expiresAt: row.expiry_date,
     status,
-    featured: isFeatured,
-    featuredUntil: featuredUntilIso,
+    premium: isPremium,
+    premiumUntil: premiumUntilIso,
+    vip: isVip,
+    vipUntil: vipUntilIso,
     ratingAvg: rating?.count ? rating.avg : undefined,
     ratingCount: rating?.count ? rating.count : undefined,
   };
@@ -119,12 +135,51 @@ export async function fetchActiveAdvertsWithMedia(): Promise<Advert[]> {
   try {
     const supabase = createServiceClient();
 
-    const { data: advertRows, error: aErr } = await supabase
+    // Prefer ordering by premium; fall back if migration 011 not applied yet (column still `featured`).
+    let advertRows: AdvertRowFromDb[] | null = null;
+    let aErr: { message: string } | null = null;
+
+    const resPremium = await supabase
       .from("adverts")
       .select("*")
       .eq("status", "active")
-      .order("featured", { ascending: false })
+      .order("premium", { ascending: false })
       .order("created_at", { ascending: false });
+
+    if (!resPremium.error && resPremium.data) {
+      advertRows = resPremium.data as AdvertRowFromDb[];
+    } else {
+      const resFeatured = await supabase
+        .from("adverts")
+        .select("*")
+        .eq("status", "active")
+        .order("featured", { ascending: false })
+        .order("created_at", { ascending: false });
+
+      if (!resFeatured.error && resFeatured.data) {
+        advertRows = resFeatured.data as AdvertRowFromDb[];
+        if (resPremium.error) {
+          console.warn(
+            "[fetchActiveAdvertsWithMedia] using legacy `featured` column — run migration 011_premium_vip.sql when ready."
+          );
+        }
+      } else {
+        const resCreated = await supabase
+          .from("adverts")
+          .select("*")
+          .eq("status", "active")
+          .order("created_at", { ascending: false });
+
+        if (!resCreated.error && resCreated.data) {
+          advertRows = resCreated.data as AdvertRowFromDb[];
+          console.warn(
+            "[fetchActiveAdvertsWithMedia] ordering by created_at only — apply migration 011 for premium sort."
+          );
+        } else {
+          aErr = resCreated.error ?? resFeatured.error ?? resPremium.error;
+        }
+      }
+    }
 
     if (aErr) {
       console.error("[fetchActiveAdvertsWithMedia] adverts query error:", aErr);
@@ -147,10 +202,11 @@ export async function fetchActiveAdvertsWithMedia(): Promise<Advert[]> {
 
     const byAdvert = buildBundleMap(mediaRows as MediaRow[]);
 
-    return (advertRows as AdvertRow[]).map((row) => {
+    const list = (advertRows as AdvertRow[]).map((row) => {
       const bundle = byAdvert.get(row.id) ?? { urls: [], focalPoints: [] };
       return rowToAdvert(row, bundle.urls, bundle.focalPoints, ratingById.get(row.id));
     });
+    return sortAdvertsForFeed(list);
   } catch (e) {
     console.error("[fetchActiveAdvertsWithMedia] unexpected error:", e);
     return [];
@@ -236,8 +292,11 @@ export type AdvertInput = {
   whatsapp: string;
   email?: string;
   expiryDays?: number;
-  featured: boolean;
-  featuredDays?: number;
+  /** Can be combined with `vip`. */
+  premium: boolean;
+  vip: boolean;
+  premiumDays?: number;
+  vipDays?: number;
   mediaUrls: string[];
   focalPoints?: string[];
 };
@@ -253,8 +312,9 @@ export async function insertAdvertWithMedia(input: AdvertInput): Promise<{ id: s
     const supabase = createServiceClient();
     const expiryDays = input.expiryDays ?? 30;
     const expiry_date = expiryDateFromDays(expiryDays);
-    const featured_until =
-      input.featured && input.featuredDays ? expiryDateFromDays(input.featuredDays) : null;
+    const premium_until =
+      input.premium && input.premiumDays ? expiryDateFromDays(input.premiumDays) : null;
+    const vip_until = input.vip && input.vipDays ? expiryDateFromDays(input.vipDays) : null;
 
     const { data: advert, error: aErr } = await supabase
       .from("adverts")
@@ -272,8 +332,10 @@ export async function insertAdvertWithMedia(input: AdvertInput): Promise<{ id: s
         email: input.email || null,
         expiry_date,
         status: "active",
-        featured: input.featured,
-        featured_until,
+        premium: input.premium,
+        premium_until,
+        vip: input.vip,
+        vip_until,
       })
       .select("id")
       .single();
@@ -309,8 +371,9 @@ export async function updateAdvertWithMedia(
 ): Promise<{ ok: true } | { error: string }> {
   try {
     const supabase = createServiceClient();
-    const featured_until =
-      input.featured && input.featuredDays ? expiryDateFromDays(input.featuredDays) : null;
+    const premium_until =
+      input.premium && input.premiumDays ? expiryDateFromDays(input.premiumDays) : null;
+    const vip_until = input.vip && input.vipDays ? expiryDateFromDays(input.vipDays) : null;
 
     const advertUpdate: Record<string, unknown> = {
       name: input.name,
@@ -324,8 +387,10 @@ export async function updateAdvertWithMedia(
       phone: input.phone,
       whatsapp: input.whatsapp,
       email: input.email || null,
-      featured: input.featured,
-      featured_until,
+      premium: input.premium,
+      premium_until,
+      vip: input.vip,
+      vip_until,
       updated_at: new Date().toISOString(),
     };
     if (typeof input.expiryDays === "number" && Number.isFinite(input.expiryDays)) {

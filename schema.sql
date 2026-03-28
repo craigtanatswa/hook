@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS "public"."adverts" (
     "email" "text",
     "expiry_date" timestamp with time zone NOT NULL,
     "status" "text" DEFAULT 'active'::"text" NOT NULL,
-    "featured" boolean DEFAULT false,
+    "premium" boolean DEFAULT false,
     "created_at" timestamp with time zone DEFAULT "now"(),
     "updated_at" timestamp with time zone DEFAULT "now"(),
     "body_type" "text" DEFAULT 'Average'::"text" NOT NULL,
@@ -122,7 +122,9 @@ CREATE TABLE IF NOT EXISTS "public"."adverts" (
     "category" "text" DEFAULT 'Soft & slow'::"text" NOT NULL,
     "short_description" "text" DEFAULT ''::"text" NOT NULL,
     "full_description" "text" DEFAULT ''::"text" NOT NULL,
-    "featured_until" timestamp with time zone,
+    "premium_until" timestamp with time zone,
+    "vip" boolean DEFAULT false NOT NULL,
+    "vip_until" timestamp with time zone,
     CONSTRAINT "adverts_status_check" CHECK (("status" = ANY (ARRAY['active'::"text", 'expired'::"text"])))
 );
 
@@ -256,7 +258,7 @@ CREATE INDEX "adverts_expiry_idx" ON "public"."adverts" USING "btree" ("expiry_d
 
 
 
-CREATE INDEX "adverts_featured_idx" ON "public"."adverts" USING "btree" ("featured");
+CREATE INDEX "adverts_premium_idx" ON "public"."adverts" USING "btree" ("premium");
 
 
 

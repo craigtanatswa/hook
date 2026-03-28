@@ -10,6 +10,7 @@ import {
   type AdvertInput,
 } from "@/lib/adverts-db";
 import { getSuburbsForCity, zimbabweCities } from "@/lib/data";
+import { normalizePhoneE164, normalizeWhatsappDigits } from "@/lib/phone-zw";
 
 function parseMediaUrls(formData: FormData): string[] {
   const raw = formData.get("media_urls");
@@ -31,13 +32,18 @@ function buildInput(formData: FormData): AdvertInput | { error: string } {
   const gender = String(formData.get("gender") || "Female");
   const bodyType = String(formData.get("bodyType") || "Average");
   const fullDescription = String(formData.get("description") || "").trim();
-  const phone = String(formData.get("phone") || "").trim();
-  const whatsapp = String(formData.get("whatsapp") || "").trim();
+  const phone = normalizePhoneE164(String(formData.get("phone") || "").trim());
+  const whatsapp = normalizeWhatsappDigits(String(formData.get("whatsapp") || "").trim());
   const email = String(formData.get("email") || "").trim() || undefined;
   const expiryRaw = String(formData.get("expiry") || "30");
-  const featured = formData.get("featured") === "on";
-  const featuredDurationRaw = String(formData.get("featured_days") || "7");
-  const featuredDays = featured ? Math.max(1, parseInt(featuredDurationRaw, 10) || 7) : undefined;
+  const premium = formData.get("premium") === "on";
+  const vip = formData.get("vip") === "on";
+  const premiumDays = premium
+    ? Math.max(1, parseInt(String(formData.get("premium_days") || "7"), 10) || 7)
+    : undefined;
+  const vipDays = vip
+    ? Math.max(1, parseInt(String(formData.get("vip_days") || "7"), 10) || 7)
+    : undefined;
   const mediaUrls = parseMediaUrls(formData);
   const focalPointsRaw = String(formData.get("media_focal_points") ?? "");
   const focalPoints = focalPointsRaw
@@ -85,8 +91,10 @@ function buildInput(formData: FormData): AdvertInput | { error: string } {
     whatsapp,
     email,
     expiryDays,
-    featured,
-    featuredDays,
+    premium,
+    vip,
+    premiumDays,
+    vipDays,
     mediaUrls,
     focalPoints,
   };
@@ -98,9 +106,11 @@ export async function createAdvertAction(
   const input = buildInput(formData);
   if ("error" in input) return { error: input.error };
 
-  // Safety: featured cannot outlast the advert itself.
-  if (input.featured && input.featuredDays && typeof input.expiryDays === "number") {
-    input.featuredDays = Math.min(input.featuredDays, input.expiryDays);
+  if (input.premium && input.premiumDays && typeof input.expiryDays === "number") {
+    input.premiumDays = Math.min(input.premiumDays, input.expiryDays);
+  }
+  if (input.vip && input.vipDays && typeof input.expiryDays === "number") {
+    input.vipDays = Math.min(input.vipDays, input.expiryDays);
   }
 
   const result = await insertAdvertWithMedia(input);
@@ -115,15 +125,14 @@ export async function updateAdvertAction(
   advertId: string,
   formData: FormData
 ): Promise<{ ok: true } | { error: string }> {
-  const input = buildInput(formData);
-  if ("error" in input) return { error: input.error };
+  const parsed = buildInput(formData);
+  if ("error" in parsed) return { error: parsed.error };
+  const input: AdvertInput = parsed;
 
-  // Safety: featured cannot outlast the advert itself.
-  // If editing and keeping expiry, we cap to the remaining days on the existing advert.
-  if (input.featured && input.featuredDays) {
+  async function capTierDays(days: number | undefined): Promise<number | undefined> {
+    if (days === undefined) return undefined;
     let cap = input.expiryDays;
     if (typeof cap !== "number") {
-      // Fetch current expiry_date from DB
       const { createServiceClient } = await import("@/lib/supabase/server");
       const supabase = createServiceClient();
       const { data } = await supabase.from("adverts").select("expiry_date").eq("id", advertId).maybeSingle();
@@ -133,9 +142,15 @@ export async function updateAdvertAction(
         cap = Math.max(1, Math.ceil(ms / (24 * 60 * 60 * 1000)));
       }
     }
-    if (typeof cap === "number") {
-      input.featuredDays = Math.min(input.featuredDays, cap);
-    }
+    if (typeof cap === "number") return Math.min(days, cap);
+    return days;
+  }
+
+  if (input.premium && input.premiumDays) {
+    input.premiumDays = await capTierDays(input.premiumDays);
+  }
+  if (input.vip && input.vipDays) {
+    input.vipDays = await capTierDays(input.vipDays);
   }
 
   const result = await updateAdvertWithMedia(advertId, input);

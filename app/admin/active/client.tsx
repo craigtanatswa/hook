@@ -19,7 +19,8 @@ interface Advert {
   expiresAt: string;
   images: string[];
   profileImage: string;
-  featured?: boolean;
+  premium?: boolean;
+  vip?: boolean;
   status?: string;
 }
 
@@ -29,7 +30,7 @@ interface Props {
 
 export function ActiveAdvertsClient({ adverts }: Props) {
   const [query, setQuery] = useState("");
-  const [featuredFilter, setFeaturedFilter] = useState<"all" | "featured" | "standard">("all");
+  const [tierFilter, setTierFilter] = useState<"all" | "premium" | "vip" | "standard">("all");
   const [locationFilter, setLocationFilter] = useState("");
   const [suburbFilter, setSuburbFilter] = useState("");
 
@@ -43,22 +44,23 @@ export function ActiveAdvertsClient({ adverts }: Props) {
         locLine.includes(q) ||
         (a.suburb?.toLowerCase().includes(q) ?? false);
 
-      const matchesFeatured =
-        featuredFilter === "all" ||
-        (featuredFilter === "featured" && a.featured) ||
-        (featuredFilter === "standard" && !a.featured);
+      const matchesTier =
+        tierFilter === "all" ||
+        (tierFilter === "premium" && a.premium) ||
+        (tierFilter === "vip" && a.vip) ||
+        (tierFilter === "standard" && !a.premium && !a.vip);
 
       const matchesCity = !locationFilter || a.location === locationFilter;
       const matchesSuburb = !suburbFilter || a.suburb === suburbFilter;
 
-      return matchesSearch && matchesFeatured && matchesCity && matchesSuburb;
+      return matchesSearch && matchesTier && matchesCity && matchesSuburb;
     });
-  }, [adverts, query, featuredFilter, locationFilter, suburbFilter]);
+  }, [adverts, query, tierFilter, locationFilter, suburbFilter]);
 
-  const hasFilters = query || featuredFilter !== "all" || locationFilter || suburbFilter;
+  const hasFilters = query || tierFilter !== "all" || locationFilter || suburbFilter;
   const clearAll = () => {
     setQuery("");
-    setFeaturedFilter("all");
+    setTierFilter("all");
     setLocationFilter("");
     setSuburbFilter("");
   };
@@ -97,16 +99,19 @@ export function ActiveAdvertsClient({ adverts }: Props) {
         </div>
 
         <div className="flex flex-wrap items-center gap-3">
-          {/* Featured filter */}
+          {/* Boost tier filter */}
           <div className="flex items-center gap-1.5">
             <Star className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             <select
-              value={featuredFilter}
-              onChange={(e) => setFeaturedFilter(e.target.value as "all" | "featured" | "standard")}
+              value={tierFilter}
+              onChange={(e) =>
+                setTierFilter(e.target.value as "all" | "premium" | "vip" | "standard")
+              }
               className="rounded-lg border border-input bg-background px-2.5 py-1.5 text-xs font-medium focus:outline-none focus:ring-2 focus:ring-ring"
             >
               <option value="all">All listings</option>
-              <option value="featured">Featured only</option>
+              <option value="premium">Premium boost</option>
+              <option value="vip">VIP badge</option>
               <option value="standard">Standard only</option>
             </select>
           </div>
@@ -189,9 +194,14 @@ export function ActiveAdvertsClient({ adverts }: Props) {
                     <span className="px-2.5 py-1 rounded-lg bg-primary/90 text-primary-foreground text-xs font-bold">
                       Active
                     </span>
-                    {advert.featured && (
-                      <span className="px-2 py-1 rounded-lg bg-amber-500/90 text-white text-xs font-bold">
-                        Featured
+                    {advert.premium && (
+                      <span className="px-2 py-1 rounded-lg bg-orange-500/90 text-white text-xs font-bold">
+                        Premium
+                      </span>
+                    )}
+                    {advert.vip && (
+                      <span className="px-2 py-1 rounded-lg bg-amber-500/90 text-amber-950 text-xs font-bold">
+                        VIP
                       </span>
                     )}
                   </div>

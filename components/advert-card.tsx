@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { MapPin, ChevronLeft, ChevronRight, Star, BadgeCheck, Film } from "lucide-react";
+import { MetallicBadge } from "@/components/metallic-badge";
 import { formatAdvertLocation, type Advert } from "@/lib/data";
 import { ContactButtons } from "@/components/contact-buttons";
 import { RatingStars } from "@/components/rating-stars";
@@ -106,11 +107,10 @@ export function AdvertCard({ advert }: AdvertCardProps) {
           </div>
         )}
 
-        {/* Featured badge */}
-        {advert.featured && (
-          <div className="absolute top-3 left-3 z-[3] flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-xs font-bold shadow-md pointer-events-none">
-            <Star className="h-3 w-3 fill-current" />
-            Featured
+        {(advert.premium || advert.vip) && (
+          <div className="absolute top-3 left-3 z-[3] flex flex-col items-start gap-1.5 pointer-events-none">
+            {advert.premium && <MetallicBadge variant="premium">Premium</MetallicBadge>}
+            {advert.vip && <MetallicBadge variant="vip">VIP</MetallicBadge>}
           </div>
         )}
 

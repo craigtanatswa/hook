@@ -102,7 +102,7 @@ export default async function AdvertDetailPage({ params }: Props) {
 
         {suggested.length > 0 && (
           <section aria-label="Other escorts you might like" className="mb-8">
-            <h2 className="text-lg font-bold text-foreground mb-1">More bodies you&apos;ll want tonight</h2>
+            <h2 className="text-lg font-bold text-foreground mb-1">More freaks you&apos;ll want tonight</h2>
             <p className="text-sm text-muted-foreground mb-4">
               More listings worth your attention—same heat, different bodies.
             </p>
