@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Flame } from "lucide-react";
+import Image from "next/image";
 import { ADULT_CONTENT_DISCLAIMER } from "@/lib/adult-disclaimer";
 
 const STORAGE_KEY = "hook_age_verified";
@@ -45,8 +45,15 @@ export function AgeGate() {
       <div className="absolute inset-0 bg-background/70 backdrop-blur-xl" />
 
       <div className="relative z-10 w-full max-w-lg rounded-3xl bg-card border border-border shadow-2xl p-8 flex flex-col items-center text-center gap-6">
-        <div className="h-16 w-16 rounded-2xl bg-primary/15 flex items-center justify-center shrink-0">
-          <Flame className="h-8 w-8 text-primary" strokeWidth={1.75} />
+        <div className="relative h-[4.5rem] w-[4.5rem] sm:h-20 sm:w-20 shrink-0">
+          <Image
+            src="/logo.png"
+            alt="Hook"
+            width={160}
+            height={160}
+            className="h-full w-full object-contain drop-shadow-sm"
+            priority
+          />
         </div>
 
         <div className="space-y-4 w-full">

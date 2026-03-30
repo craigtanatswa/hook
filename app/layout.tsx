@@ -15,21 +15,9 @@ export const metadata: Metadata = {
     'Independent escorts and companions who come to you—browse explicit listings, pick your fantasy, then call or WhatsApp. Private adults-only bookings.',
   generator: 'v0.app',
   icons: {
-    icon: [
-      {
-        url: '/icon-light-32x32.png',
-        media: '(prefers-color-scheme: light)',
-      },
-      {
-        url: '/icon-dark-32x32.png',
-        media: '(prefers-color-scheme: dark)',
-      },
-      {
-        url: '/icon.svg',
-        type: 'image/svg+xml',
-      },
-    ],
+    icon: [{ url: '/icon.png', type: 'image/png' }],
     apple: '/apple-icon.png',
+    shortcut: '/icon.png',
   },
 }
 
