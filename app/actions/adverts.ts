@@ -12,6 +12,29 @@ import {
 import { getSuburbsForCity, zimbabweCities } from "@/lib/data";
 import { normalizePhoneE164, normalizeWhatsappDigits } from "@/lib/phone-zw";
 
+const MAX_LOCATION_FIELD_LEN = 100;
+
+/** Trim and collapse whitespace; reject control characters. */
+function parseCustomLocationField(raw: string, label: string): string | { error: string } {
+  const t = raw.trim().replace(/\s+/g, " ");
+  if (!t) return { error: `${label} is required` };
+  if (t.length > MAX_LOCATION_FIELD_LEN) {
+    return { error: `${label} must be at most ${MAX_LOCATION_FIELD_LEN} characters` };
+  }
+  if (/[\r\n\0]/.test(raw)) return { error: `Invalid ${label.toLowerCase()}` };
+  return t;
+}
+
+function parseOptionalCustomSuburb(raw: string): string | { error: string } {
+  const t = raw.trim().replace(/\s+/g, " ");
+  if (!t) return "";
+  if (t.length > MAX_LOCATION_FIELD_LEN) {
+    return { error: `Area must be at most ${MAX_LOCATION_FIELD_LEN} characters` };
+  }
+  if (/[\r\n\0]/.test(raw)) return { error: "Invalid area" };
+  return t;
+}
+
 function parseMediaUrls(formData: FormData): string[] {
   const raw = formData.get("media_urls");
   if (typeof raw === "string" && raw.trim()) {
@@ -27,8 +50,8 @@ function buildInput(formData: FormData): AdvertInput | { error: string } {
   const isEdit = formData.get("is_edit") === "1";
   const name = String(formData.get("name") || "").trim();
   const age = parseInt(String(formData.get("age") || "0"), 10);
-  const location = String(formData.get("location") || "").trim();
-  const suburb = String(formData.get("suburb") || "").trim();
+  let location = String(formData.get("location") || "").trim();
+  let suburb = String(formData.get("suburb") || "").trim();
   const gender = String(formData.get("gender") || "Female");
   const bodyType = String(formData.get("bodyType") || "Average");
   const fullDescription = String(formData.get("description") || "").trim();
@@ -50,15 +73,24 @@ function buildInput(formData: FormData): AdvertInput | { error: string } {
     .split(/\r?\n/)
     .map((s) => s.trim() || "50% 50%");
 
-  if (!name || !location || !suburb || !fullDescription || !phone || !whatsapp) {
+  if (!name || !location || !fullDescription || !phone || !whatsapp) {
     return { error: "Missing required fields" };
   }
-  if (!zimbabweCities.includes(location as (typeof zimbabweCities)[number])) {
-    return { error: "Invalid city" };
-  }
-  const allowedSuburbs = getSuburbsForCity(location);
-  if (!allowedSuburbs.includes(suburb)) {
-    return { error: "Invalid suburb for selected city" };
+
+  const isKnownCity = zimbabweCities.includes(location as (typeof zimbabweCities)[number]);
+  if (isKnownCity) {
+    if (!suburb) return { error: "Missing required fields" };
+    const allowedSuburbs = getSuburbsForCity(location);
+    if (!allowedSuburbs.includes(suburb)) {
+      return { error: "Invalid suburb for selected city" };
+    }
+  } else {
+    const cityParsed = parseCustomLocationField(location, "City");
+    if (typeof cityParsed === "object" && "error" in cityParsed) return cityParsed;
+    location = cityParsed;
+    const suburbParsed = parseOptionalCustomSuburb(suburb);
+    if (typeof suburbParsed === "object" && "error" in suburbParsed) return suburbParsed;
+    suburb = suburbParsed;
   }
   if (mediaUrls.length === 0) {
     return { error: "Please add at least one photo before publishing." };
