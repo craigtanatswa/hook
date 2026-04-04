@@ -3,18 +3,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  formatAdvertLocation,
   genders,
   bodyTypes,
   zimbabweCities,
   zimbabweCitySuburbs,
   type ZimbabweCity,
 } from "@/lib/data";
+import { MediaUploader } from "@/components/media-uploader";
+import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
 function isPresetCity(loc: string | undefined): boolean {
   return Boolean(loc?.trim() && zimbabweCities.includes(loc.trim() as ZimbabweCity));
 }
-import { MediaUploader } from "@/components/media-uploader";
-import { CheckCircle2, AlertCircle, Loader2 } from "lucide-react";
 
 type ActionResult = { ok: true; id?: string } | { error: string } | void;
 
@@ -76,34 +77,57 @@ export function AdvertForm({
 
   const initialCity = isPresetCity(defaultValues.location) ? defaultValues.location!.trim() : "Harare";
   const [city, setCity] = useState(initialCity);
-  const [suburb, setSuburb] = useState(() => {
-    const subs = [...zimbabweCitySuburbs[initialCity as ZimbabweCity]];
-    const saved = defaultValues.suburb?.trim();
-    if (saved && subs.some((x) => x === saved)) return saved;
+  const subsForInitial = zimbabweCitySuburbs[initialCity as ZimbabweCity];
+  const savedSuburb = defaultValues.suburb?.trim();
+  const initialSuburbInList =
+    savedSuburb && subsForInitial.some((x) => x === savedSuburb) ? savedSuburb : subsForInitial[0] ?? "";
+  const [suburb, setSuburb] = useState(initialSuburbInList);
+  const [customSuburbMode, setCustomSuburbMode] = useState(() => {
+    if (!isPresetCity(defaultValues.location)) return true;
+    const subs = zimbabweCitySuburbs[defaultValues.location!.trim() as ZimbabweCity];
+    const s = defaultValues.suburb?.trim();
+    return Boolean(s && !subs.some((x) => x === s));
+  });
+  const [customSuburb, setCustomSuburb] = useState(() => {
+    if (!isPresetCity(defaultValues.location)) {
+      return formatAdvertLocation({
+        location: defaultValues.location?.trim() || "",
+        suburb: defaultValues.suburb,
+      });
+    }
+    const s = defaultValues.suburb?.trim();
+    const subs = zimbabweCitySuburbs[defaultValues.location!.trim() as ZimbabweCity];
+    if (s && !subs.some((x) => x === s)) return s;
     return subs[0] ?? "";
   });
-  const [customLocationMode, setCustomLocationMode] = useState(() => !isPresetCity(defaultValues.location));
-  const [customCity, setCustomCity] = useState(() =>
-    isPresetCity(defaultValues.location) ? "" : (defaultValues.location?.trim() || "")
-  );
-  const [customSuburb, setCustomSuburb] = useState(() =>
-    isPresetCity(defaultValues.location) ? "" : (defaultValues.suburb?.trim() || "")
-  );
 
   useEffect(() => {
     const loc = defaultValues.location?.trim();
     if (isPresetCity(defaultValues.location)) {
-      setCustomLocationMode(false);
       const c = loc!;
       setCity(c);
       const subs = [...zimbabweCitySuburbs[c as ZimbabweCity]];
       const saved = defaultValues.suburb?.trim();
-      if (saved && subs.some((x) => x === saved)) setSuburb(saved);
-      else setSuburb(subs[0] ?? "");
+      const inList = saved && subs.some((x) => x === saved);
+      if (inList) {
+        setCustomSuburbMode(false);
+        setSuburb(saved);
+      } else {
+        setCustomSuburbMode(true);
+        setSuburb(subs[0] ?? "");
+        setCustomSuburb(saved || subs[0] || "");
+      }
     } else {
-      setCustomLocationMode(true);
-      setCustomCity(loc || "");
-      setCustomSuburb(defaultValues.suburb?.trim() || "");
+      setCity("Harare");
+      const subs = zimbabweCitySuburbs.Harare;
+      setSuburb(subs[0] ?? "");
+      setCustomSuburbMode(true);
+      setCustomSuburb(
+        formatAdvertLocation({
+          location: loc || "",
+          suburb: defaultValues.suburb,
+        })
+      );
     }
   }, [defaultValues.location, defaultValues.suburb]);
 
@@ -275,110 +299,86 @@ export function AdvertForm({
         {/* City & suburb */}
         <div className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {!customLocationMode ? (
-              <>
-                <div>
-                  <label htmlFor="location" className="block text-sm font-semibold text-foreground mb-1.5">
-                    City *
-                  </label>
-                  <select
-                    id="location"
-                    name="location"
-                    required
-                    value={city}
-                    onChange={(e) => {
-                      const next = e.target.value;
-                      setCity(next);
-                      const subs = zimbabweCitySuburbs[next as ZimbabweCity];
-                      setSuburb(subs[0] ?? "");
-                    }}
-                    className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                  >
-                    {zimbabweCities.map((c) => (
-                      <option key={c} value={c}>
-                        {c}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label htmlFor="suburb" className="block text-sm font-semibold text-foreground mb-1.5">
-                    Suburb *
-                  </label>
-                  <select
-                    id="suburb"
-                    name="suburb"
-                    required
-                    value={suburb}
-                    onChange={(e) => setSuburb(e.target.value)}
-                    className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                  >
-                    {zimbabweCitySuburbs[city as ZimbabweCity].map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </>
-            ) : (
-              <>
-                <div>
-                  <label htmlFor="custom_location" className="block text-sm font-semibold text-foreground mb-1.5">
-                    City *
-                  </label>
-                  <input
-                    id="custom_location"
-                    name="location"
-                    type="text"
-                    required
-                    maxLength={100}
-                    autoComplete="address-level2"
-                    placeholder="e.g. Johannesburg"
-                    value={customCity}
-                    onChange={(e) => setCustomCity(e.target.value)}
-                    className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="custom_suburb" className="block text-sm font-semibold text-foreground mb-1.5">
-                    Area / suburb{" "}
-                    <span className="text-muted-foreground font-normal">(optional)</span>
-                  </label>
-                  <input
-                    id="custom_suburb"
-                    name="suburb"
-                    type="text"
-                    maxLength={100}
-                    autoComplete="address-level3"
-                    placeholder="e.g. Sandton"
-                    value={customSuburb}
-                    onChange={(e) => setCustomSuburb(e.target.value)}
-                    className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                </div>
-              </>
-            )}
+            <div>
+              <label htmlFor="location" className="block text-sm font-semibold text-foreground mb-1.5">
+                City *
+              </label>
+              <select
+                id="location"
+                name="location"
+                required
+                value={city}
+                onChange={(e) => {
+                  const next = e.target.value;
+                  setCity(next);
+                  const subs = zimbabweCitySuburbs[next as ZimbabweCity];
+                  if (!customSuburbMode) {
+                    setSuburb(subs[0] ?? "");
+                  }
+                }}
+                className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+              >
+                {zimbabweCities.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor={customSuburbMode ? "custom_suburb" : "suburb"} className="block text-sm font-semibold text-foreground mb-1.5">
+                Suburb *
+              </label>
+              {customSuburbMode ? (
+                <input
+                  id="custom_suburb"
+                  name="suburb"
+                  type="text"
+                  required
+                  maxLength={100}
+                  autoComplete="address-level3"
+                  placeholder="e.g. neighbourhood name"
+                  value={customSuburb}
+                  onChange={(e) => setCustomSuburb(e.target.value)}
+                  className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              ) : (
+                <select
+                  id="suburb"
+                  name="suburb"
+                  required
+                  value={suburb}
+                  onChange={(e) => setSuburb(e.target.value)}
+                  className="w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  {zimbabweCitySuburbs[city as ZimbabweCity].map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
           </div>
           <label className="flex items-start gap-2.5 cursor-pointer rounded-xl border border-border/80 bg-muted/20 px-3.5 py-2.5 sm:py-2">
             <input
               type="checkbox"
-              checked={customLocationMode}
+              checked={customSuburbMode}
               onChange={(e) => {
                 const on = e.target.checked;
-                setCustomLocationMode(on);
+                setCustomSuburbMode(on);
+                const subs = zimbabweCitySuburbs[city as ZimbabweCity];
                 if (on) {
-                  setCustomCity(city);
                   setCustomSuburb(suburb);
                 } else {
-                  setCity("Harare");
-                  setSuburb(zimbabweCitySuburbs.Harare[0] ?? "");
+                  const s = subs.find((x) => x === customSuburb.trim()) ?? subs[0] ?? "";
+                  setSuburb(s);
                 }
               }}
               className="mt-0.5 h-4 w-4 rounded border-border accent-primary shrink-0"
             />
             <span className="text-sm text-foreground leading-snug">
-              City not in the list — enter a custom city (and optional area)
+              Suburb not in the list — enter a custom suburb for this city
             </span>
           </label>
         </div>

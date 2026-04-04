@@ -4,7 +4,7 @@ import { fetchAllAdvertsWithMediaForAdmin } from "@/lib/adverts-db";
 import { CheckCircle2, Clock, LayoutGrid, PlusCircle, ArrowRight } from "lucide-react";
 
 export default async function AdminDashboard() {
-  const all = await fetchAllAdvertsWithMediaForAdmin();
+  const { adverts: all, error: fetchError } = await fetchAllAdvertsWithMediaForAdmin();
   const active = all.filter((a) => a.status === "active");
   const expired = all.filter((a) => a.status === "expired");
 
