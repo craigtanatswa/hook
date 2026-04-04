@@ -2,9 +2,10 @@ import Link from "next/link";
 import { formatAdvertLocation } from "@/lib/data";
 import { fetchAllAdvertsWithMediaForAdmin } from "@/lib/adverts-db";
 import { CheckCircle2, Clock, LayoutGrid, PlusCircle, ArrowRight } from "lucide-react";
+export const dynamic = "force-dynamic"
 
 export default async function AdminDashboard() {
-  const { adverts: all, error: fetchError } = await fetchAllAdvertsWithMediaForAdmin();
+  const all = await fetchAllAdvertsWithMediaForAdmin();
   const active = all.filter((a) => a.status === "active");
   const expired = all.filter((a) => a.status === "expired");
 
