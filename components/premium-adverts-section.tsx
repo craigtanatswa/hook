@@ -105,6 +105,7 @@ export function PremiumAdvertsSection({ adverts }: PremiumAdvertsSectionProps) {
           whatsapp={current.whatsapp}
           email={current.email}
           size="large"
+          advertId={current.id}
         />
       </div>
     </div>

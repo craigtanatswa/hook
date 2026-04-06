@@ -205,7 +205,12 @@ export function AdvertCard({ advert }: AdvertCardProps) {
 
         <div className="border-t border-border mb-4" />
 
-        <ContactButtons phone={advert.phone} whatsapp={advert.whatsapp} email={advert.email} />
+        <ContactButtons
+          phone={advert.phone}
+          whatsapp={advert.whatsapp}
+          email={advert.email}
+          advertId={advert.id}
+        />
       </div>
     </div>
   );

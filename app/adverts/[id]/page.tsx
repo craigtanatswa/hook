@@ -121,6 +121,7 @@ export default async function AdvertDetailPage({ params }: Props) {
             whatsapp={advert.whatsapp}
             email={advert.email}
             size="large"
+            advertId={advert.id}
           />
         </section>
       </main>
@@ -128,7 +129,12 @@ export default async function AdvertDetailPage({ params }: Props) {
       <div className="sm:hidden fixed bottom-0 left-0 right-0 z-50 bg-background/98 backdrop-blur-md border-t border-border px-4 py-3 safe-bottom">
         <div className="max-w-lg mx-auto">
           <p className="text-xs text-muted-foreground font-semibold mb-2 truncate">Message {advert.name}</p>
-          <ContactButtons phone={advert.phone} whatsapp={advert.whatsapp} email={advert.email} />
+          <ContactButtons
+            phone={advert.phone}
+            whatsapp={advert.whatsapp}
+            email={advert.email}
+            advertId={advert.id}
+          />
         </div>
       </div>
     </div>

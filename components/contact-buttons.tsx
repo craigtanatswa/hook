@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { Phone, Mail } from "lucide-react";
 import { normalizeWhatsappDigits, telHref } from "@/lib/phone-zw";
 
@@ -8,13 +9,47 @@ type ContactButtonsProps = {
   whatsapp: string;
   email?: string;
   size?: "default" | "large";
+  /** When set, WhatsApp opens with a prefilled message that links to this advert. */
+  advertId?: string;
 };
 
-export function ContactButtons({ phone, whatsapp, email, size = "default" }: ContactButtonsProps) {
+function publicSiteBase(): string {
+  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
+  return raw ? raw.replace(/\/$/, "") : "";
+}
+
+function buildAdvertPageUrl(advertId: string, originFallback: string): string | null {
+  const base = publicSiteBase() || originFallback;
+  if (!base) return null;
+  return `${base}/adverts/${advertId}`;
+}
+
+export function ContactButtons({
+  phone,
+  whatsapp,
+  email,
+  size = "default",
+  advertId,
+}: ContactButtonsProps) {
   const isLarge = size === "large";
 
+  const [originFallback, setOriginFallback] = useState("");
+  useEffect(() => {
+    setOriginFallback(window.location.origin);
+  }, []);
+
+  const advertPageUrl = useMemo(() => {
+    if (!advertId) return null;
+    return buildAdvertPageUrl(advertId, originFallback);
+  }, [advertId, originFallback]);
+
   const waDigits = normalizeWhatsappDigits(whatsapp);
-  const whatsappUrl = `https://wa.me/${waDigits}`;
+  const whatsappUrl = useMemo(() => {
+    const base = `https://wa.me/${waDigits}`;
+    if (!advertPageUrl) return base;
+    const text = `Hi! I love your profile on Hook. Let's chat: ${advertPageUrl}`;
+    return `${base}?text=${encodeURIComponent(text)}`;
+  }, [waDigits, advertPageUrl]);
   const callUrl = telHref(phone);
   const mailUrl = email ? `mailto:${email}` : undefined;
 
