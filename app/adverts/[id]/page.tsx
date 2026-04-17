@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, MapPin, Calendar, BadgeCheck } from "lucide-react";
+import { AdvertShareButton } from "@/components/advert-share-button";
 import { fetchAdvertByIdWithMedia, fetchActiveAdvertsWithMedia } from "@/lib/adverts-db";
 import { ImageGallery } from "@/components/image-gallery";
 import { ContactButtons } from "@/components/contact-buttons";
@@ -34,16 +35,19 @@ export default async function AdvertDetailPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-sm border-b border-border">
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center gap-3">
+        <div className="max-w-lg mx-auto px-4 h-14 flex items-center gap-3 min-w-0">
           <Link
             href="/"
-            className="flex items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary transition-colors"
+            className="flex shrink-0 items-center gap-1.5 text-sm font-semibold text-foreground hover:text-primary transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Back
           </Link>
-          <span className="text-muted-foreground/40">|</span>
-          <span className="text-sm font-semibold text-foreground truncate">{advert.name}</span>
+          <span className="text-muted-foreground/40 shrink-0">|</span>
+          <span className="text-sm font-semibold text-foreground truncate min-w-0 flex-1">
+            {advert.name}
+          </span>
+          <AdvertShareButton advertId={advert.id} advertName={advert.name} />
         </div>
       </header>
 

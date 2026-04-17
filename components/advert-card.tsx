@@ -7,6 +7,7 @@ import { MapPin, ChevronLeft, ChevronRight, Star, BadgeCheck, Film } from "lucid
 import { MetallicBadge } from "@/components/metallic-badge";
 import { formatAdvertLocation, type Advert } from "@/lib/data";
 import { ContactButtons } from "@/components/contact-buttons";
+import { AdvertShareButton } from "@/components/advert-share-button";
 import { RatingStars } from "@/components/rating-stars";
 
 type AdvertCardProps = {
@@ -151,12 +152,13 @@ export function AdvertCard({ advert }: AdvertCardProps) {
 
       {/* Content below media */}
       <div className="p-4 sm:p-5">
-        <div className="mb-2">
-          <Link href={`/adverts/${advert.id}`} className="block min-w-0">
+        <div className="mb-2 flex items-start gap-2 min-w-0">
+          <Link href={`/adverts/${advert.id}`} className="block min-w-0 flex-1">
             <h2 className="font-bold text-foreground text-lg sm:text-xl leading-tight hover:text-primary transition-colors">
               {advert.name}
             </h2>
           </Link>
+          <AdvertShareButton advertId={advert.id} advertName={advert.name} className="mt-0.5" />
         </div>
 
         {/* Meta */}

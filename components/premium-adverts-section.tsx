@@ -6,6 +6,7 @@ import Link from "next/link";
 import { MapPin, ChevronLeft, ChevronRight } from "lucide-react";
 import { formatAdvertLocation, type Advert } from "@/lib/data";
 import { ContactButtons } from "@/components/contact-buttons";
+import { AdvertShareButton } from "@/components/advert-share-button";
 import { MetallicBadge } from "@/components/metallic-badge";
 
 type PremiumAdvertsSectionProps = {
@@ -39,6 +40,16 @@ export function PremiumAdvertsSection({ adverts }: PremiumAdvertsSectionProps) {
 
           <div className="absolute top-4 left-4 z-[2]">
             <MetallicBadge variant="premium">Premium</MetallicBadge>
+          </div>
+
+          <div
+            className="absolute top-4 right-4 z-[4]"
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+          >
+            <AdvertShareButton advertId={current.id} advertName={current.name} />
           </div>
 
           <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/95 via-black/80 to-transparent pt-16 sm:pt-20 p-4 sm:p-6">

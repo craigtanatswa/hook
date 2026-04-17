@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Phone, Mail } from "lucide-react";
 import { normalizeWhatsappDigits, telHref } from "@/lib/phone-zw";
+import { buildAdvertPageUrl } from "@/lib/advert-url";
 
 type ContactButtonsProps = {
   phone: string;
@@ -12,17 +13,6 @@ type ContactButtonsProps = {
   /** When set, WhatsApp opens with a prefilled message that links to this advert. */
   advertId?: string;
 };
-
-function publicSiteBase(): string {
-  const raw = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  return raw ? raw.replace(/\/$/, "") : "";
-}
-
-function buildAdvertPageUrl(advertId: string, originFallback: string): string | null {
-  const base = publicSiteBase() || originFallback;
-  if (!base) return null;
-  return `${base}/adverts/${advertId}`;
-}
 
 export function ContactButtons({
   phone,
